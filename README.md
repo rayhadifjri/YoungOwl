@@ -36,6 +36,22 @@ infrastructure/    Dockerfiles (and later Kali image, lab targets, Nginx)
 docs/              Architecture, API spec, threat model, roadmap
 ```
 
+## Try it in GitHub Codespaces (no install)
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/rayhadifjri/YoungOwl)
+
+1. Click the badge (or **Code → Codespaces → Create codespace**). Pick the `feat/phase-1-foundation`
+   branch until it is merged into `main`.
+2. Wait for setup to finish (first time about 3–5 minutes): it installs packages, starts
+   PostgreSQL, loads the dummy data and builds the app.
+3. The app opens on port **3000**. If it doesn't, open the **Ports** tab and click the globe icon
+   next to port 3000.
+4. Log in with `admin@youngowl.lab` / `Owl-Admin-2026!`.
+
+The port is private by default, so only your GitHub account can open it. Codespaces is a dev
+sandbox: don't run the Kali lab (Phase 3+) there. Logs are in `.devcontainer/logs/`. After code
+changes, rebuild with `bash .devcontainer/setup.sh && bash .devcontainer/start.sh`.
+
 ## Run with Docker (VPS or local)
 
 Needs Docker with the Compose plugin.
