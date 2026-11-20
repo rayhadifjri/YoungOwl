@@ -8,6 +8,8 @@ import {
   EyeOff,
   FileText,
   GraduationCap,
+  ClipboardList,
+  ScrollText,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -17,19 +19,15 @@ export interface NavItem {
   icon: LucideIcon;
   phase?: string;
   blurb?: string;
+  /** Hide unless the user has this permission. */
+  permission?: string;
 }
 
 /** Sidebar = spec §4 modules A–I. Items with `phase` are not built yet. */
 export const NAV: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  {
-    href: '/targets',
-    label: 'Targets',
-    icon: Crosshair,
-    phase: 'Phase 2',
-    blurb:
-      'Lab targets with IP/domain, type, status and difficulty, plus a button to start an assessment.',
-  },
+  { href: '/targets', label: 'Targets', icon: Crosshair },
+  { href: '/assessments', label: 'Assessments', icon: ClipboardList },
   {
     href: '/reconnaissance',
     label: 'Reconnaissance',
@@ -67,13 +65,7 @@ export const NAV: NavItem[] = [
     blurb:
       'Defense-evasion and exfiltration patterns from the defender side; detection engineering.',
   },
-  {
-    href: '/reports',
-    label: 'Reporting',
-    icon: FileText,
-    phase: 'Phase 2',
-    blurb: 'Assessment history, findings with CVSS, evidence, remediation and PDF export.',
-  },
+  { href: '/reports', label: 'Reporting', icon: FileText, permission: 'report:read' },
   {
     href: '/learning',
     label: 'Learning Center',
@@ -81,4 +73,5 @@ export const NAV: NavItem[] = [
     phase: 'Phase 4',
     blurb: 'Lessons, hands-on labs and quizzes from Beginner to Advanced.',
   },
+  { href: '/audit', label: 'Audit log', icon: ScrollText, permission: 'audit:read' },
 ];

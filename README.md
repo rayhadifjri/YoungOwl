@@ -17,8 +17,8 @@ runs approved tools against intentionally vulnerable targets in an isolated netw
 |---|---|---|
 | 0 | Design docs | ✅ |
 | 1 | Foundation: monorepo, database + seed, auth/RBAC API, dashboard | ✅ |
-| 2 | Backend API: targets, labs, assessments, reports | next |
-| 3 | Kali worker + isolated lab network | planned |
+| 2 | Backend API: targets, labs, assessments, reports | ✅ |
+| 3 | Kali worker + isolated lab network | next |
 | 4 | Learning modules | planned |
 | 5 | PDF reports, analytics, monitoring, HTTPS deploy | planned |
 
@@ -40,8 +40,7 @@ docs/              Architecture, API spec, threat model, roadmap
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/rayhadifjri/YoungOwl)
 
-1. Click the badge (or **Code → Codespaces → Create codespace**). Pick the `feat/phase-1-foundation`
-   branch until it is merged into `main`.
+1. Click the badge (or **Code → Codespaces → Create codespace**).
 2. Wait for setup to finish (first time about 3–5 minutes): it installs packages, starts
    PostgreSQL, loads the dummy data and builds the app.
 3. The app opens on port **3000**. If it doesn't, open the **Ports** tab and click the globe icon

@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <Sidebar permissions={user.permissions} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-end gap-3 px-4 pb-2 pt-6 sm:px-8">
           <div className="flex items-center gap-3 glass rounded-full py-1.5 pl-1.5 pr-2">
@@ -28,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <LogoutButton />
           </div>
         </header>
-        <MobileNav />
+        <MobileNav permissions={user.permissions} />
         <main className="flex-1 px-4 pb-10 pt-4 sm:px-8">{children}</main>
       </div>
     </div>

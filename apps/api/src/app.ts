@@ -3,12 +3,21 @@ import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import { ZodError } from 'zod';
+import { Prisma } from '@young-owl/database';
 import type { Config } from './config.js';
 import { AppError } from './lib/errors.js';
 import authPlugin from './plugins/auth.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { dashboardRoutes } from './modules/dashboard/routes.js';
 import { systemRoutes } from './modules/system/routes.js';
+import { labRoutes } from './modules/labs/routes.js';
+import { targetRoutes } from './modules/targets/routes.js';
+import { assessmentRoutes } from './modules/assessments/routes.js';
+import { vulnerabilityRoutes } from './modules/vulnerabilities/routes.js';
+import { reportRoutes } from './modules/reports/routes.js';
+import { userRoutes } from './modules/users/routes.js';
+import { auditRoutes } from './modules/audit/routes.js';
+import { docsRoutes } from './modules/docs/routes.js';
 
 export async function buildApp(config: Config) {
   const app = Fastify({
@@ -51,6 +60,19 @@ export async function buildApp(config: Config) {
         error: { code: 'VALIDATION_ERROR', message: 'Invalid input.', details: err.issues },
       });
     }
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === 'P2002') {
+        const fields = (err.meta?.target as string[] | undefined)?.join(', ') ?? 'field';
+        return reply
+          .status(409)
+          .send({ error: { code: 'CONFLICT', message: `That ${fields} is already in use.` } });
+      }
+      if (err.code === 'P2025') {
+        return reply
+          .status(404)
+          .send({ error: { code: 'NOT_FOUND', message: 'Resource not found.' } });
+      }
+    }
     if (err instanceof AppError) {
       return reply.status(err.statusCode).send({
         error: { code: err.code, message: err.message, details: err.details },
@@ -78,6 +100,14 @@ export async function buildApp(config: Config) {
       await v1.register(authRoutes, { config });
       await v1.register(dashboardRoutes);
       await v1.register(systemRoutes);
+      await v1.register(labRoutes);
+      await v1.register(targetRoutes);
+      await v1.register(assessmentRoutes);
+      await v1.register(vulnerabilityRoutes);
+      await v1.register(reportRoutes);
+      await v1.register(userRoutes);
+      await v1.register(auditRoutes);
+      await v1.register(docsRoutes);
     },
     { prefix: '/api/v1' },
   );

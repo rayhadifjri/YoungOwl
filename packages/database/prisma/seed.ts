@@ -5,7 +5,7 @@
  */
 import { hash } from '@node-rs/argon2';
 import { PrismaClient, type Severity, type Difficulty } from '@prisma/client';
-import { ROLE_PERMISSIONS, PERMISSIONS, ROLE_NAMES } from '@young-owl/shared';
+import { ROLE_PERMISSIONS, PERMISSIONS, ROLE_NAMES, renderReportMarkdown } from '@young-owl/shared';
 
 const prisma = new PrismaClient();
 
@@ -424,14 +424,43 @@ async function main() {
       });
     }
     if (plan.status === 'COMPLETED') {
+      const full = await prisma.assessment.findUniqueOrThrow({
+        where: { id: a.id },
+        include: { target: { include: { laboratory: true } }, vulnerabilities: true, owner: true },
+      });
+      const title = `${plan.title} — report`;
+      const generatedAt = daysAgo(plan.daysAgo - 2);
       await prisma.report.create({
         data: {
           assessmentId: a.id,
           authorId: plan.owner,
-          title: `${plan.title} — report`,
-          summary: `${plan.vulns.length} findings.`,
-          format: 'PDF',
-          generatedAt: daysAgo(plan.daysAgo - 2),
+          title,
+          summary: null,
+          format: 'MARKDOWN',
+          generatedAt,
+          content: renderReportMarkdown({
+            title,
+            generatedAt: generatedAt.toISOString(),
+            author: full.owner.displayName,
+            assessment: {
+              title: full.title,
+              status: full.status,
+              description: full.description,
+              startedAt: full.startedAt?.toISOString() ?? null,
+              completedAt: full.completedAt?.toISOString() ?? null,
+            },
+            target: {
+              name: full.target.name,
+              hostname: full.target.hostname,
+              ipAddress: full.target.ipAddress,
+              technology: full.target.technology,
+              laboratory: full.target.laboratory.name,
+            },
+            findings: full.vulnerabilities.map((v) => ({
+              ...v,
+              cvssScore: v.cvssScore === null ? null : Number(v.cvssScore),
+            })),
+          }),
         },
       });
     }
@@ -594,13 +623,11 @@ async function main() {
   // Progress: researcher finished 14 lessons, student 4.
   await prisma.lessonProgress.createMany({
     data: [
-      ...allLessonIds
-        .slice(0, 14)
-        .map((lessonId, i) => ({
-          userId: researcher.id,
-          lessonId,
-          completedAt: daysAgo(60 - i * 3),
-        })),
+      ...allLessonIds.slice(0, 14).map((lessonId, i) => ({
+        userId: researcher.id,
+        lessonId,
+        completedAt: daysAgo(60 - i * 3),
+      })),
       ...allLessonIds
         .slice(0, 4)
         .map((lessonId, i) => ({ userId: student.id, lessonId, completedAt: daysAgo(5 - i) })),
