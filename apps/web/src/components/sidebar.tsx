@@ -6,8 +6,9 @@ import { NAV } from '@/lib/nav';
 import { cn } from '@/lib/utils';
 import { OwlLogo } from './logo';
 
-export function Sidebar() {
+export function Sidebar({ permissions }: { permissions: string[] }) {
   const pathname = usePathname();
+  const items = NAV.filter((i) => !i.permission || permissions.includes(i.permission));
   return (
     <aside className="sticky top-4 m-4 mr-0 hidden h-[calc(100vh-2rem)] w-64 shrink-0 flex-col glass lg:flex">
       <div className="flex items-center gap-3 px-5 py-6">
@@ -15,7 +16,7 @@ export function Sidebar() {
         <span className="text-[15px] font-semibold tracking-tight text-slate-900">Young Owl</span>
       </div>
       <nav className="flex-1 space-y-1 px-3" aria-label="Main">
-        {NAV.map((item) => {
+        {items.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
@@ -51,11 +52,12 @@ export function Sidebar() {
   );
 }
 
-export function MobileNav() {
+export function MobileNav({ permissions }: { permissions: string[] }) {
   const pathname = usePathname();
+  const items = NAV.filter((i) => !i.permission || permissions.includes(i.permission));
   return (
     <nav className="mx-4 flex gap-1 overflow-x-auto glass p-1.5 lg:hidden" aria-label="Main mobile">
-      {NAV.map((item) => (
+      {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}

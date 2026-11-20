@@ -21,7 +21,7 @@ next phase starts (spec §11).
 
 ## Phase 2 — Backend API
 - Users, labs, targets, assessments, vulnerabilities, reports (Markdown/JSON), audit logs, learning progress endpoints
-- OpenAPI docs at `/api/v1/docs`
+- OpenAPI spec at `/api/v1/openapi.json` (generated from the route registry)
 - Web pages: Target Management, Assessment history/detail, Reporting list, Audit log (admin)
 - **Done when:** every endpoint in `api-specification.md` (except jobs) works with role tests.
 

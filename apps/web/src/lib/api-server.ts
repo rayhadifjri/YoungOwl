@@ -1,6 +1,6 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:4000';
 
@@ -14,6 +14,8 @@ export async function apiGet<T>(path: string): Promise<T> {
     .join('; ');
   const res = await fetch(`${API}/api/v1${path}`, { headers: { cookie }, cache: 'no-store' });
   if (res.status === 401) redirect('/login');
+  // Pages the user may not see look the same as missing ones (matches the API's 404-not-403 rule).
+  if (res.status === 404 || res.status === 403) notFound();
   if (!res.ok) throw new Error(`API ${path} failed with ${res.status}`);
   return (await res.json()) as T;
 }

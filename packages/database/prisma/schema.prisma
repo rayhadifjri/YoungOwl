@@ -283,7 +283,8 @@ model Report {
   author       User         @relation(fields: [authorId], references: [id])
   title        String
   summary      String?
-  format       ReportFormat @default(PDF)
+  format       ReportFormat @default(MARKDOWN)
+  content      String? // snapshot rendered at creation time (Markdown or JSON)
   filePath     String?      @map("file_path")
   generatedAt  DateTime     @default(now()) @map("generated_at")
 
