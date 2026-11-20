@@ -1,0 +1,383 @@
+// Young Owl — database schema (draft v0.1, Step 1)
+// PostgreSQL + Prisma. Table names follow the spec (snake_case) via @@map.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────── Enums ─────────────
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum TargetStatus {
+  ONLINE
+  OFFLINE
+  RESETTING
+  MAINTENANCE
+}
+
+enum AssessmentStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  TIMED_OUT
+}
+
+enum Severity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum VulnStatus {
+  OPEN
+  CONFIRMED
+  FALSE_POSITIVE
+  REMEDIATED
+}
+
+enum LabSessionStatus {
+  STARTING
+  ACTIVE
+  STOPPED
+  EXPIRED
+}
+
+enum ReportFormat {
+  PDF
+  MARKDOWN
+  JSON
+}
+
+// ───────────── 1–3. Identity & RBAC ─────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String    @unique
+  passwordHash String    @map("password_hash") // argon2id
+  displayName  String    @map("display_name")
+  roleId       String    @map("role_id")
+  role         Role      @relation(fields: [roleId], references: [id])
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  sessions      Session[]
+  assessments   Assessment[]
+  labSessions   LabSession[]
+  quizResults   QuizResult[]
+  reports       Report[]
+  auditLogs     AuditLog[]
+  scanResults   ScanResult[]
+  lessonProgress LessonProgress[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique // ADMIN, INSTRUCTOR, RESEARCHER, STUDENT
+  description String?
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique // e.g. "target:read", "job:create"
+  description String?
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Session {
+  id        String   @id // random 256-bit token, stored hashed
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @map("expires_at")
+  ip        String?
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ───────────── 4–5. Labs & targets ─────────────
+
+model Laboratory {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  difficulty  Difficulty
+  networkCidr String     @map("network_cidr") // scope, e.g. 172.30.0.0/24
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  targets     Target[]
+  sessions    LabSession[]
+  assessments Assessment[]
+
+  @@map("laboratories")
+}
+
+model Target {
+  id              String       @id @default(cuid())
+  laboratoryId    String       @map("laboratory_id")
+  laboratory      Laboratory   @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  name            String
+  hostname        String // docker DNS name on lab_net, e.g. "juice-shop"
+  ipAddress       String?      @map("ip_address")
+  baseUrl         String?      @map("base_url")
+  appType         String       @map("app_type") // "web", "api", "linux-host", ...
+  technology      String? // "Node.js / Angular", "PHP / MySQL"
+  difficulty      Difficulty
+  status          TargetStatus @default(OFFLINE)
+  allowsIntrusive Boolean      @default(false) @map("allows_intrusive") // sqlmap/hydra etc.
+  dockerImage     String       @map("docker_image")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  assessments     Assessment[]
+  scanResults     ScanResult[]
+  vulnerabilities Vulnerability[]
+
+  @@unique([laboratoryId, hostname])
+  @@map("targets")
+}
+
+model LabSession {
+  id           String           @id @default(cuid())
+  userId       String           @map("user_id")
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  laboratoryId String           @map("laboratory_id")
+  laboratory   Laboratory       @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  status       LabSessionStatus @default(STARTING)
+  startedAt    DateTime         @default(now()) @map("started_at")
+  expiresAt    DateTime         @map("expires_at")
+  endedAt      DateTime?        @map("ended_at")
+
+  @@index([userId, status])
+  @@map("lab_sessions")
+}
+
+// ───────────── 6–8. Assessments, scans, findings ─────────────
+
+model Assessment {
+  id           String           @id @default(cuid())
+  title        String
+  description  String?
+  status       AssessmentStatus @default(DRAFT)
+  ownerId      String           @map("owner_id")
+  owner        User             @relation(fields: [ownerId], references: [id])
+  laboratoryId String           @map("laboratory_id")
+  laboratory   Laboratory       @relation(fields: [laboratoryId], references: [id])
+  targetId     String           @map("target_id")
+  target       Target           @relation(fields: [targetId], references: [id])
+  startedAt    DateTime?        @map("started_at")
+  completedAt  DateTime?        @map("completed_at")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  scanResults     ScanResult[]
+  vulnerabilities Vulnerability[]
+  reports         Report[]
+
+  @@index([ownerId])
+  @@map("assessments")
+}
+
+model ScanResult {
+  id           String     @id @default(cuid())
+  assessmentId String     @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  targetId     String     @map("target_id")
+  target       Target     @relation(fields: [targetId], references: [id])
+  requestedById String    @map("requested_by_id")
+  requestedBy  User       @relation(fields: [requestedById], references: [id])
+  toolProfile  String     @map("tool_profile") // e.g. "nmap.service-scan"
+  status       JobStatus  @default(QUEUED)
+  queueJobId   String?    @map("queue_job_id")
+  exitCode     Int?       @map("exit_code")
+  rawOutput    String?    @map("raw_output") // capped size
+  parsed       Json? // structured output (ports, services, findings)
+  errorMessage String?    @map("error_message")
+  queuedAt     DateTime   @default(now()) @map("queued_at")
+  startedAt    DateTime?  @map("started_at")
+  finishedAt   DateTime?  @map("finished_at")
+
+  vulnerabilities Vulnerability[]
+
+  @@index([assessmentId])
+  @@index([status])
+  @@map("scan_results")
+}
+
+model Vulnerability {
+  id            String     @id @default(cuid())
+  assessmentId  String     @map("assessment_id")
+  assessment    Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  targetId      String     @map("target_id")
+  target        Target     @relation(fields: [targetId], references: [id])
+  scanResultId  String?    @map("scan_result_id")
+  scanResult    ScanResult? @relation(fields: [scanResultId], references: [id], onDelete: SetNull)
+  title         String
+  category      String // OWASP category, e.g. "A03:2021 Injection"
+  cwe           String?
+  severity      Severity
+  cvssScore     Decimal?   @map("cvss_score") @db.Decimal(3, 1)
+  cvssVector    String?    @map("cvss_vector")
+  description   String
+  evidence      String?
+  remediation   String?
+  status        VulnStatus @default(OPEN)
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  @@index([assessmentId, severity])
+  @@map("vulnerabilities")
+}
+
+model Report {
+  id           String       @id @default(cuid())
+  assessmentId String       @map("assessment_id")
+  assessment   Assessment   @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  authorId     String       @map("author_id")
+  author       User         @relation(fields: [authorId], references: [id])
+  title        String
+  summary      String?
+  format       ReportFormat @default(PDF)
+  filePath     String?      @map("file_path")
+  generatedAt  DateTime     @default(now()) @map("generated_at")
+
+  @@map("reports")
+}
+
+// ───────────── 9–12. Learning center ─────────────
+
+model LearningModule {
+  id          String     @id @default(cuid())
+  slug        String     @unique // "reconnaissance", "backdoor-persistence", ...
+  title       String
+  description String
+  category    String // A–I module letter / area
+  difficulty  Difficulty
+  order       Int
+  isPublished Boolean    @default(false) @map("is_published")
+
+  lessons Lesson[]
+  quizzes Quiz[]
+
+  @@map("learning_modules")
+}
+
+model Lesson {
+  id               String         @id @default(cuid())
+  moduleId         String         @map("module_id")
+  module           LearningModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  slug             String
+  title            String
+  contentMarkdown  String         @map("content_markdown")
+  order            Int
+  estimatedMinutes Int            @default(10) @map("estimated_minutes")
+  laboratoryId     String?        @map("laboratory_id") // optional hands-on lab
+
+  progress LessonProgress[]
+
+  @@unique([moduleId, slug])
+  @@map("lessons")
+}
+
+model LessonProgress {
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String    @map("lesson_id")
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completedAt DateTime? @map("completed_at")
+
+  @@id([userId, lessonId])
+  @@map("lesson_progress")
+}
+
+model Quiz {
+  id           String         @id @default(cuid())
+  moduleId     String         @map("module_id")
+  module       LearningModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title        String
+  questions    Json // [{ id, prompt, options[], answerIndex, explanation }]
+  passingScore Int            @default(70) @map("passing_score")
+
+  results QuizResult[]
+
+  @@map("quizzes")
+}
+
+model QuizResult {
+  id          String   @id @default(cuid())
+  quizId      String   @map("quiz_id")
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score       Int
+  passed      Boolean
+  answers     Json
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  @@index([userId])
+  @@map("quiz_results")
+}
+
+// ───────────── 13. Audit ─────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id")
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String // "auth.login", "job.create", "target.update", ...
+  entityType String?  @map("entity_type")
+  entityId   String?  @map("entity_id")
+  ip         String?
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([actorId, createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
