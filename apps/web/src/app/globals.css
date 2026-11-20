@@ -3,11 +3,11 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-[#060912] text-slate-200 antialiased;
+  @apply bg-[#f6f8fc] text-slate-800 antialiased;
 }
 
 /* Soft colour fields behind the glass. Fixed so panels blur the same light everywhere. */
@@ -24,43 +24,44 @@ body {
   content: '';
   position: absolute;
   border-radius: 9999px;
-  filter: blur(110px);
-  opacity: 0.55;
+  filter: blur(120px);
+  opacity: 0.45;
 }
 .ambient::before {
   width: 42vw;
   height: 42vw;
   left: -8vw;
   top: -12vw;
-  background: #0e7490;
+  background: #a5f3fc;
 }
 .ambient::after {
   width: 38vw;
   height: 38vw;
   right: -10vw;
   bottom: -14vw;
-  background: #1d4ed8;
+  background: #bfdbfe;
 }
 .ambient > span {
   width: 26vw;
   height: 26vw;
   left: 45vw;
   top: 30vh;
-  background: #4c1d95;
-  opacity: 0.25;
+  background: #ddd6fe;
+  opacity: 0.5;
 }
 
 @layer components {
   .glass {
-    @apply rounded-2xl border border-white/[0.08] bg-white/[0.035] backdrop-blur-2xl;
+    @apply rounded-2xl border border-white/80 bg-white/55 backdrop-blur-2xl;
     box-shadow:
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
-      0 24px 48px -24px rgba(0, 0, 0, 0.6);
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 20px 40px -24px rgba(15, 23, 42, 0.18);
   }
   .glass-strong {
-    @apply rounded-2xl border border-white/[0.1] bg-white/[0.06] backdrop-blur-3xl;
+    @apply rounded-2xl border border-white/90 bg-white/65 backdrop-blur-3xl;
     box-shadow:
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-      0 30px 60px -30px rgba(0, 0, 0, 0.7);
+      inset 0 1px 0 0 rgba(255, 255, 255, 1),
+      0 30px 60px -30px rgba(15, 23, 42, 0.25);
   }
 }

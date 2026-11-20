@@ -18,12 +18,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-end gap-3 px-4 pb-2 pt-6 sm:px-8">
           <div className="flex items-center gap-3 glass rounded-full py-1.5 pl-1.5 pr-2">
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-white/[0.08] text-[11px] font-semibold text-cyan-200">
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-white/80 shadow-sm text-[11px] font-semibold text-cyan-700">
               {initials}
             </div>
             <div className="hidden leading-tight sm:block">
-              <div className="text-[13px] text-white">{user.displayName}</div>
-              <div className="text-[11px] text-slate-500">{user.role.toLowerCase()}</div>
+              <div className="text-[13px] text-slate-900">{user.displayName}</div>
+              <div className="text-[11px] text-slate-400">{user.role.toLowerCase()}</div>
             </div>
             <LogoutButton />
           </div>

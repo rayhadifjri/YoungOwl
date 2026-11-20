@@ -15,27 +15,27 @@ import {
 import type { Severity } from '@young-owl/shared';
 
 export const SEV_COLORS: Record<Severity, string> = {
-  CRITICAL: '#fb7185',
-  HIGH: '#fdba74',
-  MEDIUM: '#fde047',
-  LOW: '#7dd3fc',
-  INFO: '#94a3b8',
+  CRITICAL: '#f43f5e',
+  HIGH: '#fb923c',
+  MEDIUM: '#facc15',
+  LOW: '#38bdf8',
+  INFO: '#cbd5e1',
 };
 const ORDER: Severity[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
 
 const tooltipStyle = {
   contentStyle: {
-    background: 'rgba(15, 23, 42, 0.75)',
+    background: 'rgba(255, 255, 255, 0.85)',
     backdropFilter: 'blur(16px)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    border: '1px solid rgba(226,232,240,0.9)',
     borderRadius: 12,
     fontSize: 12,
   },
-  labelStyle: { color: '#94a3b8' },
-  cursor: { fill: 'rgba(255,255,255,0.04)' },
+  labelStyle: { color: '#64748b' },
+  cursor: { fill: 'rgba(15,23,42,0.03)' },
 };
-const axis = { stroke: 'rgba(148,163,184,0.5)', fontSize: 11, tickLine: false, axisLine: false };
-const grid = 'rgba(255,255,255,0.05)';
+const axis = { stroke: '#94a3b8', fontSize: 11, tickLine: false, axisLine: false };
+const grid = 'rgba(15,23,42,0.06)';
 
 export function SeverityChart({ data }: { data: Record<Severity, number> }) {
   const rows = ORDER.map((s) => ({
@@ -73,8 +73,8 @@ export function AssessmentTrend({ data }: { data: { month: string; count: number
       <AreaChart data={rows} margin={{ left: -24, right: 4, top: 8 }}>
         <defs>
           <linearGradient id="trend" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#67e8f9" stopOpacity={0.35} />
-            <stop offset="100%" stopColor="#67e8f9" stopOpacity={0} />
+            <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.22} />
+            <stop offset="100%" stopColor="#06b6d4" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke={grid} />
@@ -85,7 +85,7 @@ export function AssessmentTrend({ data }: { data: { month: string; count: number
           type="monotone"
           dataKey="count"
           name="Assessments"
-          stroke="#67e8f9"
+          stroke="#0891b2"
           strokeWidth={1.75}
           fill="url(#trend)"
         />

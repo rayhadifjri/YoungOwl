@@ -12,7 +12,7 @@ export function Sidebar() {
     <aside className="sticky top-4 m-4 mr-0 hidden h-[calc(100vh-2rem)] w-64 shrink-0 flex-col glass lg:flex">
       <div className="flex items-center gap-3 px-5 py-6">
         <OwlLogo className="h-7 w-7" />
-        <span className="text-[15px] font-semibold tracking-tight text-white">Young Owl</span>
+        <span className="text-[15px] font-semibold tracking-tight text-slate-900">Young Owl</span>
       </div>
       <nav className="flex-1 space-y-1 px-3" aria-label="Main">
         {NAV.map((item) => {
@@ -25,18 +25,18 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] transition',
                 active
-                  ? 'bg-white/[0.08] text-white'
-                  : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200',
+                  ? 'bg-white/80 shadow-sm text-slate-900'
+                  : 'text-slate-500 hover:bg-white/50 hover:text-slate-800',
               )}
             >
               <Icon
-                className={cn('h-4 w-4', active ? 'text-cyan-300' : 'text-slate-500')}
+                className={cn('h-4 w-4', active ? 'text-cyan-600' : 'text-slate-400')}
                 strokeWidth={1.75}
               />
               <span className="flex-1 truncate">{item.label}</span>
               {item.phase && (
                 <span
-                  className="h-1 w-1 rounded-full bg-slate-600"
+                  className="h-1 w-1 rounded-full bg-slate-300"
                   title={`Arrives in ${item.phase}`}
                 />
               )}
@@ -44,7 +44,7 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <p className="px-5 py-5 text-[11px] leading-relaxed text-slate-500">
+      <p className="px-5 py-5 text-[11px] leading-relaxed text-slate-400">
         Isolated lab. Test only what you own or may test.
       </p>
     </aside>
@@ -61,7 +61,9 @@ export function MobileNav() {
           href={item.href}
           className={cn(
             'whitespace-nowrap rounded-lg px-3 py-1.5 text-xs',
-            pathname.startsWith(item.href) ? 'bg-white/[0.08] text-white' : 'text-slate-400',
+            pathname.startsWith(item.href)
+              ? 'bg-white/80 shadow-sm text-slate-900'
+              : 'text-slate-500',
           )}
         >
           {item.label}
