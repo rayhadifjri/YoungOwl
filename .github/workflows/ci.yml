@@ -1,0 +1,30 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_USER: youngowl, POSTGRES_PASSWORD: youngowl, POSTGRES_DB: youngowl }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U youngowl" --health-interval 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://youngowl:youngowl@localhost:5432/youngowl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @young-owl/shared build
+      - run: pnpm --filter @young-owl/database build
+      - run: pnpm --filter @young-owl/database migrate:deploy
+      - run: pnpm db:seed
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm --filter @young-owl/web build
