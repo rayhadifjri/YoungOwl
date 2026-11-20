@@ -30,12 +30,12 @@ export function LoginForm() {
   }
 
   const input =
-    'w-full rounded-lg border border-navy-700 bg-navy-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400';
+    'w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 transition focus:border-cyan-300/50 focus:bg-white/[0.06] focus:outline-none';
 
   return (
     <form onSubmit={onSubmit} method="post" className="space-y-4" noValidate>
       <div className="space-y-1.5">
-        <label htmlFor="email" className="text-xs font-medium text-slate-300">
+        <label htmlFor="email" className="text-xs text-slate-400">
           Email
         </label>
         <input
@@ -49,7 +49,7 @@ export function LoginForm() {
         />
       </div>
       <div className="space-y-1.5">
-        <label htmlFor="password" className="text-xs font-medium text-slate-300">
+        <label htmlFor="password" className="text-xs text-slate-400">
           Password
         </label>
         <input
@@ -65,7 +65,7 @@ export function LoginForm() {
         <p
           role="alert"
           data-testid="login-error"
-          className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-300"
+          className="rounded-xl border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-sm text-rose-300"
         >
           {error}
         </p>

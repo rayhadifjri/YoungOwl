@@ -16,24 +16,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between gap-4 border-b border-navy-800 bg-navy-950/60 px-4 py-3 backdrop-blur sm:px-6">
-          <div className="flex items-center gap-2 font-mono text-xs text-slate-500">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-            <span>lab-net: isolated</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <div className="text-sm text-white">{user.displayName}</div>
-              <div className="text-[10px] uppercase tracking-widest text-cyan-400">{user.role}</div>
-            </div>
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-cyan-500 to-electric text-xs font-bold text-navy-950">
+        <header className="flex items-center justify-end gap-3 px-4 pb-2 pt-6 sm:px-8">
+          <div className="flex items-center gap-3 glass rounded-full py-1.5 pl-1.5 pr-2">
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-white/[0.08] text-[11px] font-semibold text-cyan-200">
               {initials}
+            </div>
+            <div className="hidden leading-tight sm:block">
+              <div className="text-[13px] text-white">{user.displayName}</div>
+              <div className="text-[11px] text-slate-500">{user.role.toLowerCase()}</div>
             </div>
             <LogoutButton />
           </div>
         </header>
         <MobileNav />
-        <main className="flex-1 px-4 py-6 sm:px-6">{children}</main>
+        <main className="flex-1 px-4 pb-10 pt-4 sm:px-8">{children}</main>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ export function LogoutButton() {
   return (
     <Button
       variant="ghost"
-      className="px-2"
+      className="h-8 w-8 rounded-full p-0"
       aria-label="Sign out"
       onClick={async () => {
         await apiPost('/auth/logout');
@@ -18,7 +18,7 @@ export function LogoutButton() {
         router.refresh();
       }}
     >
-      <LogOut className="h-4 w-4" />
+      <LogOut className="h-4 w-4" strokeWidth={1.75} />
     </Button>
   );
 }
