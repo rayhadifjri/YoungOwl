@@ -1,0 +1,22 @@
+# Dev container for GitHub Codespaces: the app container shares the database's network,
+# so Postgres is reachable on localhost:5432. Dummy credentials, dev only.
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    network_mode: service:db
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: youngowl
+      POSTGRES_PASSWORD: youngowl
+      POSTGRES_DB: youngowl
+    volumes:
+      - devcontainer-pgdata:/var/lib/postgresql/data
+
+volumes:
+  devcontainer-pgdata:
