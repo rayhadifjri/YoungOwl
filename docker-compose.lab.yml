@@ -60,12 +60,16 @@ services:
       FLAG_DEBUG: ${FLAG_DEBUG:-YO{d3bug_3ndp01nts_l34k_s3cr3ts}}
       FLAG_TRAVERSAL: ${FLAG_TRAVERSAL:-YO{d0t_d0t_sl4sh_w4lks_0ut}}
       FLAG_RCE: ${FLAG_RCE:-YO{p1ng_0f_d34th_sh3ll}}
+      # Attack monitor: record attacks here. This is a file write to a shared volume, not a
+      # network path, so it does not weaken the lab's "no route out" isolation.
+      MONITOR_LOG: /monitor/events.jsonl
     tmpfs: ['/tmp:size=32m']
     depends_on:
       lab-postgres: { condition: service_healthy }
       lab-migrate: { condition: service_completed_successfully }
     # Only internal networks: the API (where the RCE lives) has no route to the internet.
     networks: [lab_db, lab_app]
+    volumes: ['monitor:/monitor']
     mem_limit: 384m
     cpus: 0.5
 
@@ -93,3 +97,9 @@ networks:
   lab_edge:
     ipam:
       config: [{ subnet: 172.31.250.0/24 }]
+
+volumes:
+  # Shared, one-way with the control center: the lab only writes here. Created by deploy.sh.
+  monitor:
+    external: true
+    name: youngowl_monitor

@@ -20,6 +20,8 @@ export interface ModuleContent {
   summary: string;
   /** Beginner | Intermediate | Advanced | Conceptual */
   level?: string;
+  /** Attack categories this tab's live monitor shows; undefined = the full feed. */
+  monitorCategories?: string[];
   body: string;
 }
 
@@ -250,6 +252,7 @@ export const MODULES: Record<string, ModuleContent> = {
     summary:
       'Fingerprint the lab, read what it leaks, and enumerate valid accounts before you attack.',
     level: 'Beginner',
+    monitorCategories: ['recon'],
     body: reconnaissance.trim(),
   },
   vulnerabilities: {
@@ -265,6 +268,7 @@ export const MODULES: Record<string, ModuleContent> = {
     summary:
       'Guided exercises that turn each confirmed weakness into impact — and capture the flags.',
     level: 'Beginner → Advanced',
+    monitorCategories: ['sqli', 'xss', 'idor', 'traversal', 'rce', 'auth'],
     body: exploitation.trim(),
   },
   persistence: {
@@ -273,6 +277,7 @@ export const MODULES: Record<string, ModuleContent> = {
     summary:
       'How backdoors and persistence work, why the lab resists them, and how a defender finds them.',
     level: 'Conceptual',
+    monitorCategories: ['rce'],
     body: persistence.trim(),
   },
   evasion: {
