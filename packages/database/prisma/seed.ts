@@ -6,6 +6,7 @@
 import { hash } from '@node-rs/argon2';
 import { PrismaClient, type Severity, type Difficulty } from '@prisma/client';
 import { ROLE_PERMISSIONS, PERMISSIONS, ROLE_NAMES, renderReportMarkdown } from '@young-owl/shared';
+import { LEARNING_MODULES } from './content/learning.js';
 
 const prisma = new PrismaClient();
 
@@ -467,109 +468,11 @@ async function main() {
     }
   }
 
-  // ── Learning center (spec §4 modules A–I) ──
-  const modules: {
-    slug: string;
-    title: string;
-    category: string;
-    difficulty: Difficulty;
-    description: string;
-    lessons: string[];
-  }[] = [
-    {
-      slug: 'reconnaissance',
-      title: 'Reconnaissance',
-      category: 'C',
-      difficulty: 'BEGINNER',
-      description: 'Network discovery, port scanning, service and DNS enumeration, fingerprinting.',
-      lessons: [
-        'Network discovery',
-        'Port scanning with Nmap',
-        'Service enumeration',
-        'DNS & subdomain enumeration',
-        'Technology fingerprinting',
-      ],
-    },
-    {
-      slug: 'vulnerability-assessment',
-      title: 'Vulnerability Assessment',
-      category: 'D',
-      difficulty: 'BEGINNER',
-      description:
-        'OWASP Top 10: SQLi, XSS, IDOR, CSRF, SSRF, auth flaws, misconfiguration, uploads.',
-      lessons: [
-        'SQL injection',
-        'Cross-site scripting',
-        'IDOR',
-        'CSRF',
-        'SSRF',
-        'File upload vulnerabilities',
-      ],
-    },
-    {
-      slug: 'exploitation-lab',
-      title: 'Exploitation Laboratory',
-      category: 'E',
-      difficulty: 'INTERMEDIATE',
-      description: 'Guided, isolated exercises against the lab targets.',
-      lessons: [
-        'SQLi on the dummy database',
-        'XSS on Juice Shop',
-        'Authentication bypass in the lab',
-        'Container privilege escalation',
-      ],
-    },
-    {
-      slug: 'backdoor-persistence',
-      title: 'Backdoor & Persistence (Detection)',
-      category: 'F',
-      difficulty: 'ADVANCED',
-      description:
-        'Concepts and architecture of backdoors and persistence, and how to detect and remove them.',
-      lessons: [
-        'What a backdoor is (concepts)',
-        'Reverse vs bind shells (conceptual)',
-        'Persistence mechanisms: cron, systemd, startup',
-        'C2 architecture overview',
-        'Hunting and removing unauthorized persistence',
-      ],
-    },
-    {
-      slug: 'evasion-detection',
-      title: 'Evasion & Exit (Detection Engineering)',
-      category: 'G',
-      difficulty: 'ADVANCED',
-      description: 'Defense-evasion and exfiltration as threat patterns, from the defender side.',
-      lessons: [
-        'Defense evasion concepts',
-        'Spotting log tampering',
-        'Anti-forensics indicators',
-        'Exfiltration indicators in traffic',
-        'Writing detection rules',
-      ],
-    },
-    {
-      slug: 'incident-response',
-      title: 'Incident Response & Forensics',
-      category: 'G',
-      difficulty: 'INTERMEDIATE',
-      description: 'Triage, evidence handling, timeline building.',
-      lessons: ['IR lifecycle', 'Evidence collection', 'Timeline analysis'],
-    },
-    {
-      slug: 'reporting',
-      title: 'Writing Security Reports',
-      category: 'H',
-      difficulty: 'BEGINNER',
-      description: 'Severity, CVSS, evidence and remediation write-ups.',
-      lessons: ['CVSS 3.1 basics', 'Writing a finding'],
-    },
-  ];
-
-  let order = 0;
+  // ── Learning center (spec §4 modules A–I) — real content from prisma/content/learning.ts ──
   const allLessonIds: string[] = [];
   const quizIds: string[] = [];
-  for (const m of modules) {
+  let order = 0;
+  for (const m of LEARNING_MODULES) {
     const mod = await prisma.learningModule.create({
       data: {
         slug: m.slug,
@@ -580,42 +483,25 @@ async function main() {
         order: order++,
         isPublished: true,
         lessons: {
-          create: m.lessons.map((t, i) => ({
-            slug: t
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/(^-|-$)/g, ''),
-            title: t,
+          create: m.lessons.map((l, i) => ({
+            slug: l.slug,
+            title: l.title,
             order: i,
-            estimatedMinutes: 10 + i * 5,
-            contentMarkdown: `# ${t}\n\nLesson content for **${m.title}** — written in Phase 4.\n`,
+            estimatedMinutes: l.estimatedMinutes,
+            contentMarkdown: l.markdown,
           })),
         },
         quizzes: {
           create: [
             {
-              title: `${m.title} quiz`,
-              questions: [
-                {
-                  id: 'q1',
-                  prompt: `Placeholder question 1 for ${m.title}`,
-                  options: ['A', 'B', 'C', 'D'],
-                  answerIndex: 0,
-                  explanation: 'Written in Phase 4.',
-                },
-                {
-                  id: 'q2',
-                  prompt: `Placeholder question 2 for ${m.title}`,
-                  options: ['A', 'B', 'C', 'D'],
-                  answerIndex: 2,
-                  explanation: 'Written in Phase 4.',
-                },
-              ],
+              title: m.quiz.title,
+              passingScore: m.quiz.passingScore,
+              questions: m.quiz.questions,
             },
           ],
         },
       },
-      include: { lessons: true, quizzes: true },
+      include: { lessons: { orderBy: { order: 'asc' } }, quizzes: true },
     });
     allLessonIds.push(...mod.lessons.map((l) => l.id));
     quizIds.push(...mod.quizzes.map((q) => q.id));

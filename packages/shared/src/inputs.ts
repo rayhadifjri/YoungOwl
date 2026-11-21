@@ -134,3 +134,10 @@ export interface Paginated<T> {
   data: T[];
   meta: { page: number; pageSize: number; total: number };
 }
+
+// ── Learning ──
+export const quizSubmitSchema = z.object({
+  // One chosen option index per question, in question order.
+  answers: z.array(z.number().int().min(0).max(25)).min(1).max(50),
+});
+export const slugParamSchema = z.object({ slug: z.string().trim().min(1).max(100) });

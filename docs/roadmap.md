@@ -46,7 +46,7 @@ stored XSS, auth failures) with capture-the-flag strings. See [lab-mode.md](lab-
 - Job endpoints + SSE live terminal view in the UI
 - **Done when:** a researcher runs `nmap.service-scan` on Juice Shop from the UI and sees live output and stored results; the worker cannot reach the internet.
 
-## Phase 4 — Cybersecurity learning modules (spec Phase 3)
+## Phase 4 — Cybersecurity learning modules (spec Phase 3) ✅ built
 
 - Learning Center UI, lessons, quizzes, progress by level
 - Content: Reconnaissance, Vulnerability Assessment, Exploitation Lab guides (on the lab targets),
