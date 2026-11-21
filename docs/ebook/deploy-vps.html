@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>Young Owl — Tutorial Deploy di VPS</title>
+    <style>
+      :root {
+        --ink: #1e293b;
+        --muted: #64748b;
+        --faint: #94a3b8;
+        --line: #e2e8f0;
+        --cyan: #0891b2;
+        --accent: #0e7490;
+        --warn-bg: #fef2f2;
+        --warn-line: #fecaca;
+        --warn-ink: #b91c1c;
+        --note-bg: #ecfeff;
+        --note-line: #a5f3fc;
+        --ok-bg: #f0fdf4;
+        --ok-line: #bbf7d0;
+      }
+      @page {
+        size: A4;
+        margin: 18mm 16mm 16mm 16mm;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        color: var(--ink);
+        font-size: 10.4pt;
+        line-height: 1.55;
+        margin: 0;
+      }
+      code, pre { font-family: 'SFMono-Regular', 'Consolas', 'Menlo', monospace; }
+      .cover {
+        height: 258mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        page-break-after: always;
+        background: linear-gradient(160deg, #f6f8fc 0%, #ecfeff 55%, #eef2ff 100%);
+        margin: -18mm -16mm 0 -16mm;
+        padding: 0 22mm;
+      }
+      .cover .owl { font-size: 54pt; line-height: 1; }
+      .cover h1 { font-size: 27pt; margin: 9mm 0 2mm; letter-spacing: -0.5px; color: #0f172a; }
+      .cover .sub { font-size: 12.5pt; color: var(--accent); }
+      .cover .meta { margin-top: 12mm; font-size: 9.5pt; color: var(--muted); }
+      h2.step {
+        font-size: 15pt;
+        color: #0f172a;
+        border-bottom: 2px solid var(--cyan);
+        padding-bottom: 2.5mm;
+        margin: 9mm 0 4mm;
+        letter-spacing: -0.2px;
+      }
+      h2.step .n {
+        display: inline-grid;
+        place-items: center;
+        width: 8mm; height: 8mm;
+        background: var(--cyan);
+        color: #fff;
+        border-radius: 50%;
+        font-size: 11pt;
+        margin-right: 3mm;
+        vertical-align: middle;
+      }
+      h2.step:first-of-type { page-break-before: avoid; }
+      h3 { font-size: 11.5pt; color: #0f172a; margin: 6mm 0 1.5mm; }
+      p { margin: 0 0 2.5mm; }
+      ul, ol { margin: 0 0 2.5mm; padding-left: 6mm; }
+      li { margin-bottom: 1.2mm; }
+      strong { color: #0f172a; }
+      code {
+        background: #f1f5f9;
+        padding: 0.4mm 1.3mm;
+        border-radius: 3px;
+        font-size: 8.8pt;
+        color: #0f172a;
+      }
+      pre {
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 3.5mm 4.5mm;
+        border-radius: 7px;
+        font-size: 8.5pt;
+        line-height: 1.5;
+        margin: 2.5mm 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+      pre .c { color: #7dd3fc; }
+      pre .p { color: #86efac; }
+      .note, .warn-box, .ok {
+        border-radius: 8px;
+        padding: 3.5mm 4.5mm;
+        margin: 3mm 0;
+        font-size: 9.2pt;
+        line-height: 1.5;
+      }
+      .note { background: var(--note-bg); border: 1px solid var(--note-line); }
+      .warn-box { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink); }
+      .ok { background: var(--ok-bg); border: 1px solid var(--ok-line); }
+      table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 2.5mm 0; }
+      th, td { border: 1px solid var(--line); padding: 2mm 3mm; text-align: left; vertical-align: top; }
+      th { background: #f8fafc; color: #0f172a; }
+      .toc { page-break-after: always; }
+      .toc h2 { font-size: 16pt; color: #0f172a; border-bottom: 2px solid var(--cyan); padding-bottom: 2mm; }
+      .toc ol { list-style: none; padding: 0; font-size: 10.5pt; }
+      .toc li { padding: 1.8mm 0; border-bottom: 1px dotted var(--line); }
+      .toc .cn {
+        display: inline-grid; place-items: center;
+        width: 6.5mm; height: 6.5mm; background: #ecfeff; color: var(--accent);
+        border-radius: 50%; font-weight: bold; font-size: 9pt; margin-right: 3mm;
+      }
+      .lead { color: var(--muted); margin-bottom: 4mm; }
+      kbd {
+        background: #fff; border: 1px solid var(--line); border-bottom-width: 2px;
+        border-radius: 4px; padding: 0.3mm 1.5mm; font-size: 8.5pt; font-family: inherit;
+      }
+      .foot { color: var(--faint); font-size: 8pt; text-align: center; margin-top: 8mm; }
+    </style>
+  </head>
+  <body>
+    <section class="cover">
+      <div class="owl">🦉</div>
+      <h1>Tutorial Deploy di VPS</h1>
+      <div class="sub">Memasang Young Owl di VPS mandiri Anda, langkah demi langkah</div>
+      <div class="meta">
+        Young Owl · Panduan pemasangan · 2026<br />
+        Untuk Ubuntu 22.04 / 24.04 dengan Docker.
+      </div>
+    </section>
+
+    <section class="toc">
+      <h2>Daftar Isi</h2>
+      <ol>
+        <li><span class="cn">1</span>Yang Anda butuhkan</li>
+        <li><span class="cn">2</span>Masuk ke VPS &amp; buat user</li>
+        <li><span class="cn">3</span>Pasang Docker</li>
+        <li><span class="cn">4</span>Ambil kode Young Owl</li>
+        <li><span class="cn">5</span>Atur rahasia di file <code>.env</code></li>
+        <li><span class="cn">6</span>Jalankan (deploy)</li>
+        <li><span class="cn">7</span>Buka aplikasi lewat SSH tunnel</li>
+        <li><span class="cn">8</span>Pasang lab yang bisa diserang dari Kali</li>
+        <li><span class="cn">9</span>HTTPS dengan Nginx (opsional, disarankan)</li>
+        <li><span class="cn">10</span>Reset otomatis &amp; update</li>
+        <li><span class="cn">11</span>Kalau ada masalah</li>
+      </ol>
+    </section>
+
+    <h2 class="step"><span class="n">1</span>Yang Anda butuhkan</h2>
+    <ul>
+      <li>Sebuah <strong>VPS</strong> (Ubuntu 22.04 atau 24.04), minimal 2 GB RAM. Idealnya VPS terpisah khusus lab.</li>
+      <li><strong>Akses SSH</strong> ke VPS (alamat IP, user, dan password atau kunci SSH dari penyedia).</li>
+      <li>Komputer Anda dengan terminal (Linux/macOS, atau PowerShell/PuTTY di Windows).</li>
+      <li>Opsional: sebuah <strong>domain</strong> yang mengarah ke IP VPS, kalau mau pakai HTTPS (Langkah 9).</li>
+    </ul>
+    <div class="note">
+      <b>Keamanan.</b> Aplikasi inti (database, akun) tidak pernah dibuka ke internet. Hanya salinan
+      lab yang publik, dan itu terisolasi serta tidak bisa keluar ke internet. Detail di
+      <code>docs/lab-mode.md</code>.
+    </div>
+
+    <h2 class="step"><span class="n">2</span>Masuk ke VPS &amp; buat user</h2>
+    <p>Dari terminal komputer Anda, masuk ke VPS (ganti <code>IP_VPS</code> dengan IP Anda):</p>
+    <pre><code>ssh root@IP_VPS</code></pre>
+    <p>Buat user biasa dengan hak sudo (jangan bekerja sebagai root sehari-hari):</p>
+    <pre><code>adduser owl
+usermod -aG sudo owl
+su - owl        <span class="c"># pindah ke user baru</span></code></pre>
+
+    <h2 class="step"><span class="n">3</span>Pasang Docker</h2>
+    <p>Young Owl berjalan dengan Docker, jadi Anda tidak perlu memasang Node, PostgreSQL, dll satu per satu.</p>
+    <pre><code>curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER</code></pre>
+    <p>
+      Keluar lalu masuk lagi (<code>exit</code> kemudian <code>ssh owl@IP_VPS</code>) supaya hak
+      Docker aktif. Cek:
+    </p>
+    <pre><code>docker --version
+docker compose version</code></pre>
+    <div class="ok"><b>Berhasil bila</b> kedua perintah menampilkan nomor versi.</div>
+
+    <h2 class="step"><span class="n">4</span>Ambil kode Young Owl</h2>
+    <pre><code>git clone https://github.com/rayhadifjri/YoungOwl.git
+cd YoungOwl</code></pre>
+    <div class="note">
+      <b>Catatan.</b> Pastikan fitur terbaru (lab mode, dll) sudah ada di cabang <code>main</code>.
+      Kalau PR-nya belum digabung, beri tahu Claude untuk menggabungkannya dulu, atau checkout cabang
+      yang sesuai sebelum lanjut.
+    </div>
+
+    <h2 class="step"><span class="n">5</span>Atur rahasia di file <code>.env</code></h2>
+    <p>Salin contohnya lalu sunting:</p>
+    <pre><code>cp .env.example .env
+nano .env</code></pre>
+    <p>Ganti nilai berikut dengan yang kuat dan unik:</p>
+    <table>
+      <tr><th>Kunci</th><th>Isi dengan</th></tr>
+      <tr><td><code>POSTGRES_PASSWORD</code></td><td>Password database yang panjang &amp; acak</td></tr>
+      <tr><td><code>REDIS_PASSWORD</code></td><td>Password Redis yang kuat</td></tr>
+      <tr><td><code>SEED_ADMIN_PASSWORD</code></td><td>Password login admin Anda</td></tr>
+      <tr><td><code>SEED_RESEARCHER_PASSWORD</code></td><td>Password akun researcher</td></tr>
+      <tr><td><code>SEED_STUDENT_PASSWORD</code></td><td>Password akun student</td></tr>
+      <tr><td><code>SEED_ON_START</code></td><td><code>true</code> untuk start pertama saja (memuat data dummy)</td></tr>
+    </table>
+    <p>Butuh nilai acak yang kuat? Hasilkan cepat:</p>
+    <pre><code>openssl rand -base64 24</code></pre>
+    <p>Simpan file di nano dengan <kbd>Ctrl</kbd>+<kbd>O</kbd>, <kbd>Enter</kbd>, lalu keluar <kbd>Ctrl</kbd>+<kbd>X</kbd>.</p>
+    <div class="warn-box">
+      <b>Penting.</b> Setelah start pertama berhasil, ubah lagi <code>SEED_ON_START</code> menjadi
+      <code>false</code>. Kalau dibiarkan <code>true</code>, data akan dimuat ulang (menghapus
+      perubahan) setiap kali stack dinyalakan.
+    </div>
+
+    <h2 class="step"><span class="n">6</span>Jalankan (deploy)</h2>
+    <p>Satu perintah menyalakan aplikasi inti (postgres, redis, api, web):</p>
+    <pre><code>bash infrastructure/deploy/deploy.sh</code></pre>
+    <p>
+      Build pertama memakan beberapa menit. Setelah selesai, cek semua kontainer berjalan:
+    </p>
+    <pre><code>docker compose ps</code></pre>
+    <div class="ok">
+      <b>Berhasil bila</b> layanan <code>web</code> dan <code>api</code> berstatus <em>running</em>,
+      dan web mendengar di <code>127.0.0.1:3000</code> (hanya lokal — itu memang disengaja).
+    </div>
+
+    <h2 class="step"><span class="n">7</span>Buka aplikasi lewat SSH tunnel</h2>
+    <p>
+      Karena aplikasi sengaja tidak dibuka ke internet (sampai HTTPS siap), akses dari laptop Anda
+      lewat terowongan SSH. Jalankan ini <strong>di komputer Anda</strong>, bukan di VPS:
+    </p>
+    <pre><code>ssh -L 3000:localhost:3000 owl@IP_VPS</code></pre>
+    <p>
+      Biarkan jendela itu terbuka, lalu buka peramban ke <code>http://localhost:3000</code>. Masuk
+      dengan <code>admin@youngowl.lab</code> dan <code>SEED_ADMIN_PASSWORD</code> yang Anda set.
+    </p>
+    <div class="ok"><b>Berhasil bila</b> Anda melihat dashboard Young Owl dengan data dummy.</div>
+
+    <h2 class="step"><span class="n">8</span>Pasang lab yang bisa diserang dari Kali</h2>
+    <p>Kalau Anda juga ingin salinan rentan untuk latihan dari Kali, nyalakan dengan:</p>
+    <pre><code>bash infrastructure/deploy/deploy.sh --with-lab
+sudo bash infrastructure/lab/firewall.sh</code></pre>
+    <p>
+      Lab terbuka di port <code>8080</code>. Dari Kali, targetnya
+      <code>http://IP_VPS:8080</code>. Buka port itu di firewall penyedia/ufw bila perlu:
+    </p>
+    <pre><code>sudo ufw allow 8080/tcp</code></pre>
+    <div class="warn-box">
+      <b>Sadari risikonya.</b> Port 8080 publik berarti siapa pun di internet bisa menjangkau lab.
+      Itu memang tujuannya, dan lab sudah diisolasi (data dummy, tanpa jalan keluar, reset otomatis).
+      Jangan pernah memasang <code>VULN_MODE</code> pada salinan aplikasi inti Anda.
+    </div>
+    <p>Panduan serangannya ada di ebook <em>Panduan Pentest Lab Sendiri</em>.</p>
+
+    <h2 class="step"><span class="n">9</span>HTTPS dengan Nginx (opsional, disarankan)</h2>
+    <p>Untuk mengakses dashboard lewat domain dengan HTTPS, pasang Nginx dan sertifikat gratis:</p>
+    <pre><code>sudo apt update &amp;&amp; sudo apt install -y nginx certbot python3-certbot-nginx</code></pre>
+    <p>Buat konfigurasi situs (ganti domain Anda):</p>
+    <pre><code>sudo nano /etc/nginx/sites-available/youngowl</code></pre>
+    <pre><code>server {
+    server_name youngowl.contoh.com;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+    <pre><code>sudo ln -s /etc/nginx/sites-available/youngowl /etc/nginx/sites-enabled/
+sudo nginx -t &amp;&amp; sudo systemctl reload nginx
+sudo certbot --nginx -d youngowl.contoh.com</code></pre>
+    <p>
+      Lalu set <code>COOKIE_SECURE=true</code> di <code>.env</code> dan jalankan ulang
+      <code>deploy.sh</code>. Buka hanya port yang perlu:
+    </p>
+    <pre><code>sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable</code></pre>
+
+    <h2 class="step"><span class="n">10</span>Reset otomatis &amp; update</h2>
+    <h3>Reset lab berkala</h3>
+    <p>Agar lab kembali bersih setiap beberapa jam, tambahkan cron:</p>
+    <pre><code>crontab -e</code></pre>
+    <pre><code>0 */6 * * * cd /home/owl/YoungOwl &amp;&amp; bash infrastructure/lab/reset.sh &gt;&gt; /var/log/youngowl-lab-reset.log 2&gt;&amp;1</code></pre>
+    <h3>Update ke versi terbaru</h3>
+    <pre><code>cd ~/YoungOwl
+git pull
+bash infrastructure/deploy/deploy.sh --with-lab</code></pre>
+
+    <h2 class="step"><span class="n">11</span>Kalau ada masalah</h2>
+    <table>
+      <tr><th>Gejala</th><th>Coba ini</th></tr>
+      <tr>
+        <td>Lupa/ingin lihat log kontainer</td>
+        <td><code>docker compose logs -f web</code> atau <code>api</code></td>
+      </tr>
+      <tr>
+        <td>Perubahan <code>.env</code> tidak terpakai</td>
+        <td>Jalankan ulang <code>bash infrastructure/deploy/deploy.sh</code></td>
+      </tr>
+      <tr>
+        <td>Port 3000 tidak bisa dibuka dari laptop</td>
+        <td>Pastikan terowongan SSH (Langkah 7) masih berjalan</td>
+      </tr>
+      <tr>
+        <td>Lab tidak bisa dijangkau dari Kali</td>
+        <td>Buka port 8080 di ufw <em>dan</em> firewall penyedia VPS</td>
+      </tr>
+      <tr>
+        <td>Database penuh / ingin mulai bersih</td>
+        <td><code>docker compose down -v</code> lalu set <code>SEED_ON_START=true</code> sekali</td>
+      </tr>
+      <tr>
+        <td>Butuh berhenti sementara</td>
+        <td><code>docker compose stop</code> (data tetap), <code>start</code> untuk lanjut</td>
+      </tr>
+    </table>
+    <div class="note">
+      <b>Bantuan lebih lanjut.</b> Dokumen rinci ada di repo: <code>docs/deploy-vps.md</code> dan
+      <code>docs/lab-mode.md</code>. Catatan: sesi Claude di cloud tidak bisa SSH ke VPS Anda, jadi
+      perintah di atas Anda jalankan sendiri. Bila komputer Anda terhubung ke thread dan bisa
+      menjangkau VPS, Claude bisa menjalankannya bersama Anda.
+    </div>
+
+    <div class="foot">Young Owl — Tutorial Deploy di VPS · 2026</div>
+  </body>
+</html>
