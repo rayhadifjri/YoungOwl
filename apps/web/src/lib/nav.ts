@@ -10,6 +10,7 @@ import {
   GraduationCap,
   ClipboardList,
   ScrollText,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -21,6 +22,8 @@ export interface NavItem {
   blurb?: string;
   /** Hide unless the user has this permission. */
   permission?: string;
+  /** Only shown in lab mode (VULN_MODE). */
+  labOnly?: boolean;
 }
 
 /** Sidebar = spec §4 modules A–I. Items with `phase` are not built yet. */
@@ -74,4 +77,5 @@ export const NAV: NavItem[] = [
     blurb: 'Lessons, hands-on labs and quizzes from Beginner to Advanced.',
   },
   { href: '/audit', label: 'Audit log', icon: ScrollText, permission: 'audit:read' },
+  { href: '/tools', label: 'Lab tools', icon: Wrench, labOnly: true },
 ];

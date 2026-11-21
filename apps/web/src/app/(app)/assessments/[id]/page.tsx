@@ -5,6 +5,7 @@ import { can, getMe } from '@/lib/session';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pill, SeverityBadge, StatusDot } from '@/components/ui/badge';
 import { fmtDate } from '@/lib/format';
+import { isLabMode } from '@/lib/lab';
 import {
   AddFindingButton,
   AssessmentStatusSelect,
@@ -68,6 +69,7 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const [me, a] = await Promise.all([getMe(), apiGet<Detail>(`/assessments/${id}`)]);
   const editable = a.canEdit && can(me, 'finding:write');
+  const labMode = isLabMode();
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
@@ -85,6 +87,14 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
             {a.target.name} · {a.owner.displayName} · started {fmtDate(a.startedAt ?? a.createdAt)}
             {a.completedAt && ` · completed ${fmtDate(a.completedAt)}`}
           </p>
+          {labMode && (
+            <a
+              href={`/api/v1/assessments/${a.id}/export`}
+              className="mt-2 inline-flex items-center gap-1.5 text-xs text-cyan-700 hover:underline"
+            >
+              <Download className="h-3.5 w-3.5" /> Export JSON
+            </a>
+          )}
         </div>
         {a.canEdit && can(me, 'assessment:update') ? (
           <AssessmentStatusSelect id={a.id} status={a.status} />
@@ -167,7 +177,14 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
                   )}
                 </summary>
                 <div className="grid gap-4 px-2 pb-4 pt-2 text-sm md:grid-cols-3">
-                  <Section title="Description">{f.description}</Section>
+                  {labMode ? (
+                    // Lab mode VULN (stored XSS): the description is rendered as raw HTML.
+                    <Section title="Description">
+                      <span dangerouslySetInnerHTML={{ __html: f.description }} />
+                    </Section>
+                  ) : (
+                    <Section title="Description">{f.description}</Section>
+                  )}
                   <Section title="Evidence" mono>
                     {f.evidence}
                   </Section>

@@ -382,3 +382,16 @@ model AuditLog {
   @@index([action])
   @@map("audit_logs")
 }
+
+// ───────────── Lab mode (VULN_MODE) ─────────────
+
+/// Secrets hidden in the intentionally vulnerable lab copy. Empty in a normal install.
+model LabFlag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  value     String
+  hint      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("lab_flags")
+}

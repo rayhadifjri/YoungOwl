@@ -6,9 +6,14 @@ import { NAV } from '@/lib/nav';
 import { cn } from '@/lib/utils';
 import { OwlLogo } from './logo';
 
-export function Sidebar({ permissions }: { permissions: string[] }) {
+const visibleNav = (permissions: string[], labMode: boolean) =>
+  NAV.filter(
+    (i) => (!i.permission || permissions.includes(i.permission)) && (!i.labOnly || labMode),
+  );
+
+export function Sidebar({ permissions, labMode }: { permissions: string[]; labMode: boolean }) {
   const pathname = usePathname();
-  const items = NAV.filter((i) => !i.permission || permissions.includes(i.permission));
+  const items = visibleNav(permissions, labMode);
   return (
     <aside className="sticky top-4 m-4 mr-0 hidden h-[calc(100vh-2rem)] w-64 shrink-0 flex-col glass lg:flex">
       <div className="flex items-center gap-3 px-5 py-6">
@@ -52,9 +57,9 @@ export function Sidebar({ permissions }: { permissions: string[] }) {
   );
 }
 
-export function MobileNav({ permissions }: { permissions: string[] }) {
+export function MobileNav({ permissions, labMode }: { permissions: string[]; labMode: boolean }) {
   const pathname = usePathname();
-  const items = NAV.filter((i) => !i.permission || permissions.includes(i.permission));
+  const items = visibleNav(permissions, labMode);
   return (
     <nav className="mx-4 flex gap-1 overflow-x-auto glass p-1.5 lg:hidden" aria-label="Main mobile">
       {items.map((item) => (

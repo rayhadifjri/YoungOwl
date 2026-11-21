@@ -13,6 +13,7 @@ const daysAgo = (d: number) => new Date(Date.now() - d * 24 * 60 * 60 * 1000);
 
 async function wipe() {
   // Order matters for FKs.
+  await prisma.labFlag.deleteMany();
   await prisma.auditLog.deleteMany();
   await prisma.quizResult.deleteMany();
   await prisma.lessonProgress.deleteMany();
@@ -696,6 +697,41 @@ async function main() {
       { actorId: researcher.id, action: 'auth.login', createdAt: daysAgo(0) },
     ],
   });
+
+  // ── Lab mode extras (only for the intentionally vulnerable copy) ──
+  if (process.env.SEED_VULN === 'true') {
+    // Weak password from common wordlists, for brute-force practice.
+    await prisma.user.create({
+      data: {
+        email: 'intern@youngowl.lab',
+        username: 'summer-intern',
+        displayName: 'Summer Intern',
+        passwordHash: await hash(process.env.SEED_INTERN_PASSWORD ?? 'sunshine'),
+        roleId: roles.get('STUDENT')!,
+      },
+    });
+    await prisma.labFlag.createMany({
+      data: [
+        {
+          name: 'sqli',
+          value: process.env.FLAG_SQLI ?? 'YO{un10n_s3l3ct_th3_0wl}',
+          hint: 'Found by reading tables you were never meant to see.',
+        },
+      ],
+    });
+    // A private admin assessment that only an IDOR can reveal.
+    await prisma.assessment.create({
+      data: {
+        title: 'Internal: red team notes (private)',
+        description: `Do not share. Break-glass code: ${process.env.FLAG_IDOR ?? 'YO{1d0r_m34ns_n0_0wn3r_ch3ck}'}`,
+        status: 'DRAFT',
+        ownerId: admin.id,
+        laboratoryId: webLab.id,
+        targetId: juice.id,
+      },
+    });
+    console.log('Lab mode extras seeded (intern account, flags, private assessment).');
+  }
 
   console.log('Seed complete:');
   console.log('  admin@youngowl.lab       (ADMIN)');
