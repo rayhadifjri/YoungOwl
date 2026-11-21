@@ -109,5 +109,7 @@ pnpm test          # API tests need the seeded database
 - [Threat model](docs/threat-model.md)
 - [Roadmap](docs/roadmap.md)
 - [Lab mode (attacking Young Owl itself)](docs/lab-mode.md)
+- [Deploy on a VPS](docs/deploy-vps.md)
+- [Pentest lab ebook (PDF, Indonesian)](docs/ebook/YoungOwl-Panduan-Pentest-Lab.pdf)
 - [Database schema](packages/database/prisma/schema.prisma)
 - [Original requirements (master prompt)](docs/master-prompt.md)
