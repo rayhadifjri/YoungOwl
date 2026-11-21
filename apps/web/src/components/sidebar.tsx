@@ -40,12 +40,6 @@ export function Sidebar({ permissions, labMode }: { permissions: string[]; labMo
                 strokeWidth={1.75}
               />
               <span className="flex-1 truncate">{item.label}</span>
-              {item.phase && (
-                <span
-                  className="h-1 w-1 rounded-full bg-slate-300"
-                  title={`Arrives in ${item.phase}`}
-                />
-              )}
             </Link>
           );
         })}
