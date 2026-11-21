@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { changePasswordSchema, loginRequestSchema } from '@young-owl/shared';
+import { prisma } from '@young-owl/database';
 import type { Config } from '../../config.js';
 import { audit } from '../../lib/audit.js';
 import { randomToken } from '../../lib/crypto.js';
@@ -12,7 +13,15 @@ export const authRoutes: FastifyPluginAsync<{ config: Config }> = async (app, { 
 
   app.post(
     '/auth/login',
-    { config: { rateLimit: { max: config.LOGIN_RATE_LIMIT_MAX, timeWindow: '1 minute' } } },
+    {
+      config: {
+        // Lab mode (VULN_MODE): effectively no brute-force limit, on purpose.
+        rateLimit: {
+          max: config.VULN_MODE ? 100_000 : config.LOGIN_RATE_LIMIT_MAX,
+          timeWindow: '1 minute',
+        },
+      },
+    },
     async (req, reply) => {
       const body = loginRequestSchema.parse(req.body);
       const user = await verifyCredentials(body.email, body.password);
@@ -21,6 +30,15 @@ export const authRoutes: FastifyPluginAsync<{ config: Config }> = async (app, { 
           { action: 'auth.login.failed', ip: req.ip, metadata: { email: body.email } },
           req.log,
         );
+        if (config.VULN_MODE) {
+          // Lab mode: different messages let an attacker enumerate valid emails.
+          const known = await prisma.user.findUnique({ where: { email: body.email } });
+          throw new AppError(
+            401,
+            'INVALID_CREDENTIALS',
+            known ? 'Wrong password for this account.' : 'No account uses that email.',
+          );
+        }
         throw new AppError(401, 'INVALID_CREDENTIALS', 'Email or password is incorrect.');
       }
       // Rotate: drop any session this browser already had.

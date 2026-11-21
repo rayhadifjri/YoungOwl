@@ -18,6 +18,7 @@ import { reportRoutes } from './modules/reports/routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { auditRoutes } from './modules/audit/routes.js';
 import { docsRoutes } from './modules/docs/routes.js';
+import { vulnLabRoutes } from './modules/vuln-lab/routes.js';
 
 export async function buildApp(config: Config) {
   const app = Fastify({
@@ -99,7 +100,7 @@ export async function buildApp(config: Config) {
     async (v1) => {
       await v1.register(authRoutes, { config });
       await v1.register(dashboardRoutes);
-      await v1.register(systemRoutes);
+      await v1.register(systemRoutes, { vulnMode: config.VULN_MODE });
       await v1.register(labRoutes);
       await v1.register(targetRoutes);
       await v1.register(assessmentRoutes);
@@ -108,6 +109,11 @@ export async function buildApp(config: Config) {
       await v1.register(userRoutes);
       await v1.register(auditRoutes);
       await v1.register(docsRoutes);
+      // Deliberately vulnerable endpoints. Only ever loaded in lab mode.
+      if (config.VULN_MODE) {
+        app.log.warn('VULN_MODE is on: this API is intentionally vulnerable. Lab use only.');
+        await v1.register(vulnLabRoutes, { config });
+      }
     },
     { prefix: '/api/v1' },
   );

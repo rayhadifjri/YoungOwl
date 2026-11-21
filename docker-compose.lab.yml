@@ -1,0 +1,95 @@
+# Young Owl LAB copy: an intentionally vulnerable Young Owl for attacking from Kali.
+# Runs next to the normal stack (docker-compose.yml) but shares nothing with it.
+#
+#   docker compose -f docker-compose.lab.yml -p youngowl-lab up -d --build
+#   sudo bash infrastructure/lab/firewall.sh      # block outbound traffic from the lab
+#
+# Full guide: docs/lab-mode.md
+name: youngowl-lab
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+  pids_limit: 200
+
+services:
+  lab-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: owl
+      POSTGRES_PASSWORD: ${LAB_DB_PASSWORD:-owl-lab}
+      POSTGRES_DB: youngowl_lab
+    # Data lives in RAM: every restart (and every reset) starts from a clean seed.
+    tmpfs: ['/var/lib/postgresql/data:size=256m']
+    networks: [lab_db]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U owl -d youngowl_lab']
+      interval: 5s
+      retries: 10
+    mem_limit: 384m
+    cpus: 0.5
+
+  lab-migrate:
+    build: { context: ., dockerfile: infrastructure/docker/migrate.Dockerfile }
+    environment:
+      DATABASE_URL: postgresql://owl:${LAB_DB_PASSWORD:-owl-lab}@lab-postgres:5432/youngowl_lab
+      SEED: 'true'
+      SEED_VULN: 'true'
+      SEED_ADMIN_PASSWORD: ${LAB_ADMIN_PASSWORD:-Owl-Admin-2026!}
+      SEED_RESEARCHER_PASSWORD: ${LAB_RESEARCHER_PASSWORD:-Owl-Research-2026!}
+      SEED_STUDENT_PASSWORD: ${LAB_STUDENT_PASSWORD:-Owl-Student-2026!}
+      FLAG_SQLI: ${FLAG_SQLI:-YO{un10n_s3l3ct_th3_0wl}}
+      FLAG_IDOR: ${FLAG_IDOR:-YO{1d0r_m34ns_n0_0wn3r_ch3ck}}
+    depends_on: { lab-postgres: { condition: service_healthy } }
+    networks: [lab_db]
+    restart: 'no'
+
+  lab-api:
+    <<: *hardening
+    build: { context: ., dockerfile: infrastructure/docker/api.Dockerfile }
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      VULN_MODE: 'true'
+      DATABASE_URL: postgresql://owl:${LAB_DB_PASSWORD:-owl-lab}@lab-postgres:5432/youngowl_lab
+      API_PORT: 4000
+      COOKIE_SECURE: 'false'
+      LOG_LEVEL: info
+      FLAG_DEBUG: ${FLAG_DEBUG:-YO{d3bug_3ndp01nts_l34k_s3cr3ts}}
+      FLAG_TRAVERSAL: ${FLAG_TRAVERSAL:-YO{d0t_d0t_sl4sh_w4lks_0ut}}
+      FLAG_RCE: ${FLAG_RCE:-YO{p1ng_0f_d34th_sh3ll}}
+    tmpfs: ['/tmp:size=32m']
+    depends_on:
+      lab-postgres: { condition: service_healthy }
+      lab-migrate: { condition: service_completed_successfully }
+    # Only internal networks: the API (where the RCE lives) has no route to the internet.
+    networks: [lab_db, lab_app]
+    mem_limit: 384m
+    cpus: 0.5
+
+  lab-web:
+    <<: *hardening
+    build:
+      context: .
+      dockerfile: infrastructure/docker/web.Dockerfile
+      args: { API_INTERNAL_URL: 'http://lab-api:4000' }
+    restart: unless-stopped
+    environment:
+      VULN_MODE: 'true'
+    tmpfs: ['/tmp:size=32m']
+    depends_on: [lab-api]
+    networks: [lab_app, lab_edge]
+    # Public on purpose: this is what you attack from Kali.
+    ports: ['0.0.0.0:${LAB_PORT:-8080}:3000']
+    mem_limit: 384m
+    cpus: 0.5
+
+networks:
+  lab_db: { internal: true }
+  lab_app: { internal: true }
+  # Fixed subnet so infrastructure/lab/firewall.sh can block outbound traffic from it.
+  lab_edge:
+    ipam:
+      config: [{ subnet: 172.31.250.0/24 }]

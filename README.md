@@ -13,14 +13,14 @@ runs approved tools against intentionally vulnerable targets in an isolated netw
 
 ## Status
 
-| Phase | What | State |
-|---|---|---|
-| 0 | Design docs | ✅ |
-| 1 | Foundation: monorepo, database + seed, auth/RBAC API, dashboard | ✅ |
-| 2 | Backend API: targets, labs, assessments, reports | ✅ |
-| 3 | Kali worker + isolated lab network | next |
-| 4 | Learning modules | planned |
-| 5 | PDF reports, analytics, monitoring, HTTPS deploy | planned |
+| Phase | What                                                            | State   |
+| ----- | --------------------------------------------------------------- | ------- |
+| 0     | Design docs                                                     | ✅      |
+| 1     | Foundation: monorepo, database + seed, auth/RBAC API, dashboard | ✅      |
+| 2     | Backend API: targets, labs, assessments, reports                | ✅      |
+| 3     | Kali worker + isolated lab network                              | next    |
+| 4     | Learning modules                                                | planned |
+| 5     | PDF reports, analytics, monitoring, HTTPS deploy                | planned |
 
 See [docs/roadmap.md](docs/roadmap.md).
 
@@ -89,11 +89,11 @@ pnpm dev                           # web on :3000, api on :4000
 
 ### Seed accounts (dummy, change before any real use)
 
-| Email | Role | Password (from `.env`) |
-|---|---|---|
-| admin@youngowl.lab | ADMIN | `SEED_ADMIN_PASSWORD` |
+| Email                   | Role       | Password (from `.env`)     |
+| ----------------------- | ---------- | -------------------------- |
+| admin@youngowl.lab      | ADMIN      | `SEED_ADMIN_PASSWORD`      |
 | researcher@youngowl.lab | RESEARCHER | `SEED_RESEARCHER_PASSWORD` |
-| student@youngowl.lab | STUDENT | `SEED_STUDENT_PASSWORD` |
+| student@youngowl.lab    | STUDENT    | `SEED_STUDENT_PASSWORD`    |
 
 ### Tests
 
@@ -108,5 +108,6 @@ pnpm test          # API tests need the seeded database
 - [API specification](docs/api-specification.md)
 - [Threat model](docs/threat-model.md)
 - [Roadmap](docs/roadmap.md)
+- [Lab mode (attacking Young Owl itself)](docs/lab-mode.md)
 - [Database schema](packages/database/prisma/schema.prisma)
 - [Original requirements (master prompt)](docs/master-prompt.md)
