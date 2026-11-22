@@ -20,6 +20,8 @@ import { auditRoutes } from './modules/audit/routes.js';
 import { docsRoutes } from './modules/docs/routes.js';
 import { learningRoutes } from './modules/learning/routes.js';
 import { vulnLabRoutes } from './modules/vuln-lab/routes.js';
+import { monitorRoutes } from './modules/monitor/routes.js';
+import { registerMonitorWriter } from './modules/monitor/hook.js';
 
 export async function buildApp(config: Config) {
   const app = Fastify({
@@ -42,6 +44,11 @@ export async function buildApp(config: Config) {
   app.addHook('onSend', async (req, reply) => {
     reply.header('x-request-id', req.id);
   });
+
+  // Attack monitor (write side): only the lab copy records attacks, to a shared one-way log.
+  if (config.VULN_MODE && config.MONITOR_LOG) {
+    registerMonitorWriter(app, config.MONITOR_LOG);
+  }
 
   await app.register(helmet, { contentSecurityPolicy: false }); // API returns JSON only
   await app.register(cookie);
@@ -111,6 +118,8 @@ export async function buildApp(config: Config) {
       await v1.register(auditRoutes);
       await v1.register(docsRoutes);
       await v1.register(learningRoutes);
+      // Attack monitor (read side): control center shows what the lab recorded.
+      if (config.MONITOR_LOG) await v1.register(monitorRoutes, { logPath: config.MONITOR_LOG });
       // Deliberately vulnerable endpoints. Only ever loaded in lab mode.
       if (config.VULN_MODE) {
         app.log.warn('VULN_MODE is on: this API is intentionally vulnerable. Lab use only.');

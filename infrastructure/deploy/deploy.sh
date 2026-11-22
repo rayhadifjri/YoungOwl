@@ -17,6 +17,11 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+# Shared, one-way volume for the attack monitor: the lab writes attack events, the control center
+# reads them. Safe to run every time; it is a no-op once the volume exists.
+echo "==> Ensuring the attack-monitor volume exists"
+docker volume create youngowl_monitor >/dev/null
+
 echo "==> Building and starting the main stack (postgres, redis, api, web on 127.0.0.1:3000)"
 # First run seeds the dummy data; set SEED_ON_START=true in .env for the very first start.
 docker compose up -d --build

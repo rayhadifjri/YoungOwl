@@ -24,6 +24,12 @@ const envSchema = z.object({
   FLAG_DEBUG: z.string().default('YO{d3bug_3ndp01nts_l34k_s3cr3ts}'),
   FLAG_TRAVERSAL: z.string().default('YO{d0t_d0t_sl4sh_w4lks_0ut}'),
   FLAG_RCE: z.string().default('YO{p1ng_0f_d34th_sh3ll}'),
+  /**
+   * Attack monitor log path (shared, one-way volume). When set, the lab copy (VULN_MODE) classifies
+   * suspicious requests and appends them here; the control center reads the same file (mounted
+   * read-only) and shows them live. Empty = monitor disabled. See docs/lab-mode.md.
+   */
+  MONITOR_LOG: z.string().default(''),
 });
 
 export type Config = z.infer<typeof envSchema>;

@@ -47,9 +47,12 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-12}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Attack monitor: read the log the lab writes (mounted read-only below).
+      MONITOR_LOG: ${MONITOR_LOG:-/monitor/events.jsonl}
     depends_on:
       migrate: { condition: service_completed_successfully }
     networks: [core_net, edge_net]
+    volumes: ['monitor:/monitor:ro']
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
@@ -80,3 +83,8 @@ networks:
 
 volumes:
   pgdata:
+  # Shared, one-way: the lab stack writes attack events here; the control center mounts it
+  # read-only. Created by deploy.sh (docker volume create youngowl_monitor).
+  monitor:
+    external: true
+    name: youngowl_monitor
